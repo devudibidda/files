@@ -77,6 +77,19 @@ def _analyze(symbol: str) -> dict | None:
         adjusted_score = round(score * 0.7, 1)
         verdict = verdict_for(adjusted_score)
 
+    # News sentiment nudges the score by up to ±10 (reported separately too)
+    news_sentiment = {"score": 0.0, "label": "neutral", "count": 0}
+    try:
+        from ..news.rss import stock_news
+        from ..news.sentiment import aggregate
+        headlines = stock_news(symbol) or []
+        news_sentiment = aggregate([h["sentiment"] for h in headlines])
+        news_adj = round(max(-10.0, min(10.0, news_sentiment["score"] * 20)), 1)
+    except Exception:
+        news_adj = 0.0
+    adjusted_score = round(max(-100.0, min(100.0, adjusted_score + news_adj)), 1)
+    verdict = verdict_for(adjusted_score)
+
     lvl = support_resistance(df)
     pivots = pivot_points(df)
     plan = build_trade_plan(enriched, verdict, lvl)
@@ -99,6 +112,7 @@ def _analyze(symbol: str) -> dict | None:
         "confidence": confidence,
         "summary": _trend_summary(votes, adjusted_score, verdict, weekly),
         "weeklyTrend": weekly,
+        "newsSentiment": {**news_sentiment, "scoreAdjustment": news_adj},
         "votes": votes,
         "indicators": snap,
         "levels": lvl,

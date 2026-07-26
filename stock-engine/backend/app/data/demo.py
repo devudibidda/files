@@ -22,8 +22,21 @@ def _seed(symbol: str) -> int:
     return int(hashlib.sha256(symbol.upper().encode()).hexdigest()[:8], 16)
 
 
+_FULL_DAYS = 1200
+
+
 def demo_history(symbol: str, days: int = 500) -> pd.DataFrame:
+    """Always generates the same full series per symbol, then slices —
+    so every chart range shows a consistent price history."""
+    full = _full_history(symbol)
+    df = full.tail(min(days, _FULL_DAYS)).copy()
+    df.attrs["source"] = "demo"
+    return df
+
+
+def _full_history(symbol: str) -> pd.DataFrame:
     key = symbol.upper().removesuffix(".NS").removesuffix(".BO")
+    days = _FULL_DAYS
     rng = np.random.RandomState(_seed(key))
     base = _BASE_PRICES.get(key, float(rng.randint(80, 4000)))
 
