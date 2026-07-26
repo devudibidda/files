@@ -97,6 +97,12 @@ def _analyze(symbol: str) -> dict | None:
 
     meta = lookup(symbol) or {}
     price = float(df["Close"].iloc[-1])
+
+    try:
+        from ..db.store import record_signal
+        record_signal(symbol, adjusted_score, verdict, round(price, 2))
+    except Exception:
+        pass
     high52 = float(df["High"].tail(252).max())
     low52 = float(df["Low"].tail(252).min())
 

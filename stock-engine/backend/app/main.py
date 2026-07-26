@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import scheduler
 from .config import CORS_ORIGINS, DEMO_MODE, DISCLAIMER
-from .routers import market, stocks
+from .routers import market, stocks, watchlist
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
@@ -35,6 +35,7 @@ app.add_middleware(
 
 app.include_router(stocks.router)
 app.include_router(market.router)
+app.include_router(watchlist.router)
 
 
 @app.get("/api/health")
