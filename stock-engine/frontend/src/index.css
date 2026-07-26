@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply bg-ink-900 text-slate-200 font-sans;
+    background-image: radial-gradient(1200px 500px at 70% -10%, rgba(14, 165, 233, 0.07), transparent),
+      radial-gradient(900px 400px at 10% -10%, rgba(16, 185, 129, 0.05), transparent);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-500 rounded-full border-2 border-solid border-ink-900;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-ink-800/80 border border-ink-600 rounded-2xl shadow-card backdrop-blur-sm;
+  }
+  .card-pad {
+    @apply card p-5;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+  .num {
+    @apply tabular-nums;
+  }
+  .btn-pill {
+    @apply px-3 py-1.5 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-ink-700 transition-colors;
+  }
+  .btn-pill-active {
+    @apply bg-ink-600 text-white;
+  }
+  .table-head {
+    @apply text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500 px-4 py-2.5;
+  }
+  .table-cell {
+    @apply px-4 py-3 text-sm border-t border-ink-700;
+  }
+  .skeleton {
+    @apply animate-pulse bg-ink-700 rounded;
+  }
+}

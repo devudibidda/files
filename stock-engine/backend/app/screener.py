@@ -6,6 +6,7 @@ from .data.symbols import ALL_SYMBOLS
 from .signals.analysis import analyze
 
 SCANS = {
+    "all": "All symbols ranked by score",
     "strong_buy": "Strong Buy signals",
     "buy": "All Buy signals",
     "sell": "Sell / Strong Sell signals",

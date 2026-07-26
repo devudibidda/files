@@ -55,7 +55,8 @@ def get_history(symbol: str, range_: str = "1y", interval: str | None = None) ->
         except Exception as exc:
             log.warning("history fetch failed for %s: %s", ticker, exc)
     if (df is None or df.empty) and DEMO_MODE in ("auto", "on"):
-        days = {"1mo": 45, "3mo": 90, "6mo": 160, "1y": 500, "2y": 560, "5y": 900, "max": 1200}.get(range_, 500)
+        # trading days per range
+        days = {"1d": 5, "5d": 10, "1mo": 22, "3mo": 66, "6mo": 130, "1y": 250, "2y": 500, "5y": 900, "max": 1200}.get(range_, 250)
         df = demo_history(symbol, days)
     if df is None or df.empty:
         return None
