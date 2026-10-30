@@ -6,6 +6,8 @@ plain requests. There is no synthetic data anywhere in this module:
 on any failure it returns None and callers surface an honest error.
 """
 import logging
+import threading
+import time
 
 import pandas as pd
 import requests
@@ -19,6 +21,25 @@ _UA = {
         "Chrome/120 Safari/537.36"
     )
 }
+# Yahoo rate-limits shared hosting IPs (Render free shares one egress IP
+# with many other apps), and our overview/screener bursts used to trip it
+# instantly: 60-145 symbols fetched at 8 concurrent workers. A process-wide
+# gap between calls plus backoff on 429 keeps us under the limit instead
+# of hammering a tripped quota with immediate host failovers.
+_MIN_GAP = 0.3  # seconds between Yahoo calls, across all threads
+_BACKOFFS = (0.0, 2.0, 8.0)  # waits before retry rounds after a 429
+_CALL_LOCK = threading.Lock()
+_LAST_CALL = 0.0
+
+
+def _throttle():
+    """Space Yahoo calls at least _MIN_GAP apart, process-wide."""
+    global _LAST_CALL
+    with _CALL_LOCK:
+        wait = _MIN_GAP - (time.monotonic() - _LAST_CALL)
+        if wait > 0:
+            time.sleep(wait)
+        _LAST_CALL = time.monotonic()
 # Intervals whose bars are calendar buckets, not intraday timestamps.
 _BUCKET_INTERVALS = ("1d", "1wk", "1mo")
 
@@ -74,15 +95,33 @@ def parse_chart_payload(result: dict, interval: str) -> pd.DataFrame | None:
 
 
 def fetch_chart(ticker: str, range_: str, interval: str) -> pd.DataFrame | None:
-    """Fetch OHLCV for a Yahoo ticker, or None when the feed fails."""
-    for host in _HOSTS:
-        try:
-            resp = requests.get(
-                f"https://{host}/v8/finance/chart/{ticker}",
-                params={"range": range_, "interval": interval},
-                headers=_UA,
-                timeout=20,
-            )
+    """Fetch OHLCV for a Yahoo ticker, or None when the feed fails.
+
+    On a 429 the other host is NOT tried immediately (it shares the same
+    per-IP quota, so an instant failover just doubles the burst); instead
+    the round backs off and retries, up to 3 rounds.
+    """
+    for round_no, backoff in enumerate(_BACKOFFS):
+        if backoff:
+            time.sleep(backoff)
+        for host in _HOSTS:
+            _throttle()
+            try:
+                resp = requests.get(
+                    f"https://{host}/v8/finance/chart/{ticker}",
+                    params={"range": range_, "interval": interval},
+                    headers=_UA,
+                    timeout=20,
+                )
+            except Exception as exc:
+                log.warning("chart fetch failed for %s via %s: %s", ticker, host, exc)
+                continue
+            if resp.status_code == 429:
+                log.warning(
+                    "chart API %s -> HTTP 429 for %s (round %d)",
+                    host, ticker, round_no,
+                )
+                break
             if resp.status_code != 200:
                 log.warning("chart API %s -> HTTP %s for %s", host, resp.status_code, ticker)
                 continue
@@ -91,6 +130,4 @@ def fetch_chart(ticker: str, range_: str, interval: str) -> pd.DataFrame | None:
             if df is not None:
                 return df
             log.warning("chart API %s returned no usable bars for %s", host, ticker)
-        except Exception as exc:
-            log.warning("chart fetch failed for %s via %s: %s", ticker, host, exc)
     return None

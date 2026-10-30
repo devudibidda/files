@@ -46,3 +46,57 @@ def test_parse_empty_returns_none():
     assert parse_chart_payload(
         {"timestamp": [], "indicators": {"quote": [{"close": []}]}}, "1d"
     ) is None
+
+
+def test_fetch_chart_backs_off_on_429_then_succeeds(monkeypatch):
+    """A 429 must not trigger an instant host failover: the round backs off
+    and retries, and a later 200 still yields a frame."""
+    from app.data import yahoo_chart
+
+    calls = []
+
+    class Resp:
+        def __init__(self, status, payload=None):
+            self.status_code = status
+            self._payload = payload
+
+        def json(self):
+            return {"chart": {"result": [self._payload]}}
+
+    responses = [
+        Resp(429),
+        Resp(200, _payload([1164.9, 1168.0])),
+    ]
+
+    def fake_get(url, params=None, headers=None, timeout=None):
+        calls.append(url)
+        return responses.pop(0)
+
+    sleeps = []
+    monkeypatch.setattr(yahoo_chart.requests, "get", fake_get)
+    monkeypatch.setattr(yahoo_chart.time, "sleep", lambda s: sleeps.append(s))
+    monkeypatch.setattr(yahoo_chart, "_MIN_GAP", 0)
+
+    df = yahoo_chart.fetch_chart("RELIANCE.NS", "1y", "1d")
+    assert df is not None
+    assert df["Close"].iloc[-1] == 1168.0
+    # First call hit query1 and 429'd; the retry waited before succeeding.
+    assert calls[0].startswith("https://query1.finance.yahoo.com/")
+    assert any(s >= 2.0 for s in sleeps)
+
+
+def test_fetch_chart_gives_up_after_429_rounds(monkeypatch):
+    """Persistent 429s across all rounds return None, not a partial frame."""
+    from app.data import yahoo_chart
+
+    class Resp:
+        status_code = 429
+
+        def json(self):
+            raise AssertionError("should not parse a 429 body")
+
+    monkeypatch.setattr(yahoo_chart.requests, "get", lambda *a, **k: Resp())
+    monkeypatch.setattr(yahoo_chart.time, "sleep", lambda s: None)
+    monkeypatch.setattr(yahoo_chart, "_MIN_GAP", 0)
+
+    assert yahoo_chart.fetch_chart("RELIANCE.NS", "1y", "1d") is None

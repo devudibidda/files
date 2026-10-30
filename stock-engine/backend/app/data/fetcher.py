@@ -61,19 +61,23 @@ def get_history(symbol: str, range_: str = "1y", interval: str | None = None) ->
 
 
 def get_quote(symbol: str) -> dict | None:
-    """Lightweight quote built from recent daily candles (no fragile fast_info)."""
+    """Lightweight quote built from recent daily candles (no fragile fast_info).
+
+    Uses the 1y frame alone: its last two bars give price/prevClose/day
+    OHLC and its full span gives the 52-week extremes, so a quote costs
+    one Yahoo fetch instead of two (the old 3mo + 1y pair).
+    """
     ticker = to_yahoo(symbol)
     key = f"quote:{ticker}"
     q = cache.get(key)
     if q is not None:
         return q
-    df = get_history(symbol, "3mo")
+    df = get_history(symbol, "1y")
     if df is None or len(df) < 2:
         return None
     last, prev = df.iloc[-1], df.iloc[-2]
-    year = get_history(symbol, "1y")
-    high_52w = float(year["High"].max()) if year is not None else None
-    low_52w = float(year["Low"].min()) if year is not None else None
+    high_52w = float(df["High"].max())
+    low_52w = float(df["Low"].min())
     price = float(last["Close"])
     prev_close = float(prev["Close"])
     change = price - prev_close
