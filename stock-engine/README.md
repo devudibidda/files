@@ -76,7 +76,7 @@ Run backend tests: `cd backend && python -m pytest tests/`
 
 ## Free deployment
 
-1. **Backend → Render/Railway free tier**: root `backend/`, start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. The app serves live data only — no demo mode exists.
+1. **Backend → Render free tier**: connect the repo and use the Blueprint (`render.yaml` at the repo root) — it builds the frontend and runs the backend as one free web service (sleeps after 15 idle minutes). The app serves live data only — no demo mode exists.
 2. **Database → Supabase**: create a free project, run `backend/supabase_schema.sql` in the SQL editor, set `SUPABASE_URL` + `SUPABASE_KEY` on the backend.
 3. **Frontend → Vercel/Netlify**: root `frontend/`, build `npm run build`, output `dist/`, env `VITE_API_URL=https://<your-backend>`.
 

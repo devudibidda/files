@@ -1,0 +1,16 @@
+# Render Blueprint for TrendWise (free web service).
+# The backend also serves the built frontend, so one service runs the whole app.
+services:
+  - type: web
+    name: trendwise
+    env: python
+    plan: free
+    region: singapore
+    rootDir: stock-engine
+    buildCommand: pip install -r backend/requirements.txt && npm --prefix frontend install && npm --prefix frontend run build
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SCHEDULER
+        value: "off"
