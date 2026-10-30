@@ -26,8 +26,13 @@ _UA = {
 # instantly: 60-145 symbols fetched at 8 concurrent workers. A process-wide
 # gap between calls plus backoff on 429 keeps us under the limit instead
 # of hammering a tripped quota with immediate host failovers.
-_MIN_GAP = 0.3  # seconds between Yahoo calls, across all threads
-_BACKOFFS = (0.0, 2.0, 8.0)  # waits before retry rounds after a 429
+# Tuning history: 0.3s gaps + 2s/8s backoffs (Oct 30) got only 1 of 60
+# overview symbols through on Render, so round 2 goes much slower: 1s
+# gaps and up to 60s backoffs, honoring Yahoo's Retry-After when sent.
+# Cost: a cold overview takes ~60s+; its 5-min cache means only the first
+# load after expiry pays that.
+_MIN_GAP = 1.0  # seconds between Yahoo calls, across all threads
+_BACKOFFS = (0.0, 5.0, 20.0, 60.0)  # waits before retry rounds after a 429
 _CALL_LOCK = threading.Lock()
 _LAST_CALL = 0.0
 
@@ -101,9 +106,12 @@ def fetch_chart(ticker: str, range_: str, interval: str) -> pd.DataFrame | None:
     per-IP quota, so an instant failover just doubles the burst); instead
     the round backs off and retries, up to 3 rounds.
     """
+    retry_after = 0.0
     for round_no, backoff in enumerate(_BACKOFFS):
-        if backoff:
-            time.sleep(backoff)
+        wait = max(backoff, retry_after)
+        if wait:
+            time.sleep(wait)
+        retry_after = 0.0
         for host in _HOSTS:
             _throttle()
             try:
@@ -117,6 +125,11 @@ def fetch_chart(ticker: str, range_: str, interval: str) -> pd.DataFrame | None:
                 log.warning("chart fetch failed for %s via %s: %s", ticker, host, exc)
                 continue
             if resp.status_code == 429:
+                raw = (getattr(resp, "headers", {}) or {}).get("Retry-After")
+                try:
+                    retry_after = min(float(raw), 60.0) if raw is not None else 0.0
+                except (TypeError, ValueError):
+                    retry_after = 0.0
                 log.warning(
                     "chart API %s -> HTTP 429 for %s (round %d)",
                     host, ticker, round_no,

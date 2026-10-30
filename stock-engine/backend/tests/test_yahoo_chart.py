@@ -85,6 +85,37 @@ def test_fetch_chart_backs_off_on_429_then_succeeds(monkeypatch):
     assert any(s >= 2.0 for s in sleeps)
 
 
+def test_fetch_chart_honors_retry_after(monkeypatch):
+    """A 429 carrying Retry-After waits that long (not just the backoff)."""
+    from app.data import yahoo_chart
+
+    class Resp:
+        def __init__(self, status, payload=None, headers=None):
+            self.status_code = status
+            self._payload = payload
+            self.headers = headers or {}
+
+        def json(self):
+            return {"chart": {"result": [self._payload]}}
+
+    responses = [
+        Resp(429, headers={"Retry-After": "30"}),
+        Resp(200, _payload([1164.9, 1168.0])),
+    ]
+
+    monkeypatch.setattr(
+        yahoo_chart.requests, "get",
+        lambda *a, **k: responses.pop(0),
+    )
+    sleeps = []
+    monkeypatch.setattr(yahoo_chart.time, "sleep", lambda s: sleeps.append(s))
+    monkeypatch.setattr(yahoo_chart, "_MIN_GAP", 0)
+
+    df = yahoo_chart.fetch_chart("RELIANCE.NS", "1y", "1d")
+    assert df is not None
+    assert sleeps == [30.0]
+
+
 def test_fetch_chart_gives_up_after_429_rounds(monkeypatch):
     """Persistent 429s across all rounds return None, not a partial frame."""
     from app.data import yahoo_chart
