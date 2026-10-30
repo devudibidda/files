@@ -1,10 +1,12 @@
 from fastapi import APIRouter, HTTPException, Query
 
-from ..data.fetcher import get_history, get_quote, history_to_candles
+from ..data.fetcher import get_history, get_quote, history_to_candles, is_intraday, time_key
 from ..data.symbols import ALL_SYMBOLS, lookup, search
 from ..indicators.engine import compute_all
 from ..news.rss import market_news, stock_news
+from ..screener import scan_universe
 from ..signals.analysis import analyze
+from ..signals.backtest import backtest
 
 router = APIRouter(prefix="/api", tags=["stocks"])
 
@@ -17,6 +19,24 @@ def symbols_search(q: str = Query(..., min_length=1), limit: int = 15):
 @router.get("/etfs")
 def list_etfs():
     return {"results": [e for e in ALL_SYMBOLS if e["type"] == "etf"]}
+
+
+@router.get("/etfs/leaders")
+def etf_leaders():
+    """Top 3 ETFs per category, ranked by composite signal score."""
+    rows = scan_universe("etf")
+    cats: dict[str, list] = {}
+    for r in rows:
+        cats.setdefault(r["sector"] or "Other", []).append(r)
+    categories = []
+    for cat, items in sorted(cats.items()):
+        items.sort(key=lambda r: r["score"], reverse=True)
+        categories.append({"category": cat, "leaders": items[:3]})
+    return {
+        "categories": categories,
+        "method": "ETFs ranked by TrendWise composite signal score within each "
+                  "category. Scores are technical signals, not investment advice.",
+    }
 
 
 @router.get("/stocks/{symbol}/quote")
@@ -48,10 +68,11 @@ def stock_history(
     }
     if overlays and len(df) >= 20:
         enriched = compute_all(df)
+        intraday = is_intraday(df)
         def series(col):
             vals = enriched[col]
             return [
-                {"time": ts.date().isoformat(), "value": round(float(v), 2)}
+                {"time": time_key(ts, intraday), "value": round(float(v), 2)}
                 for ts, v in vals.items() if v == v  # skip NaN
             ]
         payload["overlays"] = {
@@ -70,10 +91,22 @@ def stock_history(
 
 
 @router.get("/stocks/{symbol}/analysis")
-def stock_analysis(symbol: str):
-    report = analyze(symbol)
+def stock_analysis(
+    symbol: str,
+    account_size: float = Query(100000, gt=0),
+    risk_pct: float = Query(1.0, gt=0, le=100),
+):
+    report = analyze(symbol, account_size, risk_pct)
     if not report:
         raise HTTPException(404, f"Not enough data to analyze '{symbol}'")
+    return report
+
+
+@router.get("/stocks/{symbol}/backtest")
+def stock_backtest(symbol: str):
+    report = backtest(symbol)
+    if not report:
+        raise HTTPException(404, f"Not enough data to backtest '{symbol}'")
     return report
 
 

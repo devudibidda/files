@@ -14,10 +14,6 @@ SQLITE_PATH = os.getenv("SQLITE_PATH", os.path.join(os.path.dirname(__file__), "
 
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
 
-# "auto": use live data, fall back to deterministic synthetic data when the
-# provider is unreachable. "on": always synthetic. "off": live only.
-DEMO_MODE = os.getenv("DEMO_MODE", "auto").lower()
-
 DISCLAIMER = (
     "TrendWise is an educational analysis tool, not SEBI-registered investment advice. "
     "Markets carry risk; do your own research before trading."

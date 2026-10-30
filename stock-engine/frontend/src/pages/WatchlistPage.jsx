@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, clientId, fmt } from '../api';
-import { ChangePct, SectionTitle, Skeleton, SymbolLink, VerdictBadge } from '../components/ui';
+import { ChangePct, Reveal, SectionTitle, Skeleton, SymbolLink, VerdictBadge } from '../components/ui';
 
 function localList() {
   return (localStorage.getItem('tw-watchlist') || '').split(',').filter(Boolean);
@@ -57,14 +57,14 @@ export default function WatchlistPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-extrabold tracking-tight text-white">Watchlist</h1>
+        <h1 className="font-display text-xl font-extrabold tracking-tight text-white">Watchlist</h1>
         <p className="mt-1 text-sm text-slate-500">
           Star any stock from its analysis page to track it here with a live verdict.
         </p>
       </div>
 
       {symbols.length === 0 ? (
-        <div className="card-pad py-16 text-center">
+        <Reveal><div className="card-pad card-hover py-16 text-center">
           <p className="text-4xl">★</p>
           <p className="mt-3 font-semibold text-slate-300">Your watchlist is empty</p>
           <p className="mt-1 text-sm text-slate-500">
@@ -74,9 +74,9 @@ export default function WatchlistPage() {
             </Link>
             .
           </p>
-        </div>
+        </div></Reveal>
       ) : (
-        <div className="card overflow-hidden">
+        <Reveal><div className="card card-hover overflow-hidden">
           <div className="px-5 pt-4">
             <SectionTitle>{symbols.length} tracked symbols</SectionTitle>
           </div>
@@ -134,7 +134,7 @@ export default function WatchlistPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </div></Reveal>
       )}
     </div>
   );

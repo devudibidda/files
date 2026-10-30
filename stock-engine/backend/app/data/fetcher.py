@@ -1,5 +1,6 @@
-"""Market data layer on top of yfinance, with TTL caching.
+"""Market data layer on top of Yahoo Finance's public chart API.
 
+Live data only — there is no synthetic fallback anywhere in this module.
 All functions return plain pandas objects / dicts and never raise on
 provider hiccups — they return None so callers can respond 503/404 cleanly.
 """
@@ -7,16 +8,15 @@ import logging
 import math
 
 import pandas as pd
-import yfinance as yf
 
-from ..config import DEMO_MODE, HISTORY_TTL, QUOTE_TTL
+from ..config import HISTORY_TTL, QUOTE_TTL
 from .cache import cache
-from .demo import demo_history
 from .symbols import to_yahoo
+from .yahoo_chart import fetch_chart
 
 log = logging.getLogger(__name__)
 
-# yfinance range → (period, interval) presets
+# chart API range → interval presets
 RANGE_PRESETS = {
     "1mo": ("1mo", "1d"),
     "3mo": ("3mo", "1d"),
@@ -48,16 +48,7 @@ def get_history(symbol: str, range_: str = "1y", interval: str | None = None) ->
     if cached_df is not None:
         return cached_df
 
-    df = None
-    if DEMO_MODE != "on":
-        try:
-            df = yf.Ticker(ticker).history(period=period, interval=interval, auto_adjust=True)
-        except Exception as exc:
-            log.warning("history fetch failed for %s: %s", ticker, exc)
-    if (df is None or df.empty) and DEMO_MODE in ("auto", "on"):
-        # trading days per range
-        days = {"1d": 5, "5d": 10, "1mo": 22, "3mo": 66, "6mo": 130, "1y": 250, "2y": 500, "5y": 900, "max": 1200}.get(range_, 250)
-        df = demo_history(symbol, days)
+    df = fetch_chart(ticker, period, interval)
     if df is None or df.empty:
         return None
     source = df.attrs.get("source", "live")
@@ -106,13 +97,40 @@ def get_quote(symbol: str) -> dict | None:
     return q
 
 
+def is_intraday(df: pd.DataFrame) -> bool:
+    """True when candles carry time-of-day (5m/15m bars), not just dates.
+
+    Daily bars from the chart API are normalized to midnight; intraday bars carry
+    market hours. The chart library needs distinct time keys per bar, so
+    intraday data must not be collapsed to dates.
+    """
+    for ts in df.index[:10]:
+        try:
+            if ts.hour or ts.minute or ts.second:
+                return True
+        except AttributeError:
+            continue
+    return False
+
+
+def time_key(ts, intraday: bool):
+    """Chart time key: unix seconds for intraday, YYYY-MM-DD for daily+.
+
+    lightweight-charts accepts one time format per series, so callers must
+    use the same intraday flag for candles and overlays of one response.
+    """
+    if intraday:
+        return int(ts.timestamp())
+    return ts.date().isoformat() if hasattr(ts, "date") else str(ts)
+
+
 def history_to_candles(df: pd.DataFrame) -> list[dict]:
     """Serialize OHLCV for the frontend chart (lightweight-charts format)."""
+    intraday = is_intraday(df)
     out = []
     for ts, row in df.iterrows():
-        t = ts.date().isoformat() if hasattr(ts, "date") else str(ts)
         out.append({
-            "time": t,
+            "time": time_key(ts, intraday),
             "open": round(float(row["Open"]), 2),
             "high": round(float(row["High"]), 2),
             "low": round(float(row["Low"]), 2),

@@ -30,6 +30,7 @@ def _row(report: dict) -> dict:
         "score": report["score"],
         "verdict": report["verdict"],
         "confidence": report["confidence"],
+        "source": report.get("dataSource", "live"),
         "rsi": ind.get("RSI14"),
         "adx": ind.get("ADX14"),
         "supertrend": "bullish" if ind.get("ST_DIR") == 1 else "bearish",

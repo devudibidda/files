@@ -137,6 +137,7 @@ EQUITIES = [
     ("SUZLON", "Suzlon Energy", "Renewables"),
     ("IDEA", "Vodafone Idea", "Telecom"),
     ("YESBANK", "Yes Bank", "Banking"),
+    ("JPL", "Jio Platforms", "Telecom"),
 ]
 
 ETFS = [

@@ -1,7 +1,11 @@
 """Full analysis report orchestrator."""
+import logging
+
 import pandas as pd
 
 from ..config import ANALYSIS_TTL, DISCLAIMER
+
+log = logging.getLogger(__name__)
 from ..data.cache import cached
 from ..data.fetcher import get_history
 from ..data.symbols import lookup
@@ -52,11 +56,35 @@ def _trend_summary(votes: list[dict], score: float, verdict: str, weekly: dict) 
     return f"{verdict}: " + ", ".join(parts) + "."
 
 
-def analyze(symbol: str) -> dict | None:
-    return cached(f"analysis:{symbol.upper()}", ANALYSIS_TTL, lambda: _analyze(symbol))
+def relative_strength(stock: pd.DataFrame, nifty: pd.DataFrame | None) -> dict | None:
+    """Stock returns vs NIFTY 50 over 1M/3M/1Y, aligned on common trading days."""
+    if stock is None or nifty is None or len(stock) < 30 or len(nifty) < 30:
+        return None
+    joined = pd.DataFrame(
+        {"s": stock["Close"].astype(float), "n": nifty["Close"].astype(float)}
+    ).dropna()
+    if len(joined) < 30:
+        return None
+    out = {}
+    for label, days in (("1M", 22), ("3M", 66), ("1Y", 252)):
+        if len(joined) <= days:
+            continue
+        s_ret = joined["s"].iloc[-1] / joined["s"].iloc[-1 - days] - 1
+        n_ret = joined["n"].iloc[-1] / joined["n"].iloc[-1 - days] - 1
+        out[label] = {
+            "stock": round(float(s_ret) * 100, 1),
+            "nifty": round(float(n_ret) * 100, 1),
+            "outperformance": round(float(s_ret - n_ret) * 100, 1),
+        }
+    return out or None
 
 
-def _analyze(symbol: str) -> dict | None:
+def analyze(symbol: str, account_size: float = 100000, risk_pct: float = 1.0) -> dict | None:
+    key = f"analysis:{symbol.upper()}:{account_size}:{risk_pct}"
+    return cached(key, ANALYSIS_TTL, lambda: _analyze(symbol, account_size, risk_pct))
+
+
+def _analyze(symbol: str, account_size: float = 100000, risk_pct: float = 1.0) -> dict | None:
     df = get_history(symbol, "2y", "1d")
     if df is None or len(df) < 60:
         return None
@@ -85,14 +113,16 @@ def _analyze(symbol: str) -> dict | None:
         headlines = stock_news(symbol) or []
         news_sentiment = aggregate([h["sentiment"] for h in headlines])
         news_adj = round(max(-10.0, min(10.0, news_sentiment["score"] * 20)), 1)
-    except Exception:
+    except Exception as exc:
+        log.warning("news sentiment failed for %s: %s", symbol, exc)
         news_adj = 0.0
     adjusted_score = round(max(-100.0, min(100.0, adjusted_score + news_adj)), 1)
     verdict = verdict_for(adjusted_score)
 
     lvl = support_resistance(df)
     pivots = pivot_points(df)
-    plan = build_trade_plan(enriched, verdict, lvl)
+    plan = build_trade_plan(enriched, verdict, lvl, account_size, risk_pct)
+    rs = relative_strength(df, get_history("^NSEI", "2y", "1d"))
     confidence = confidence_for(votes, adjusted_score)
 
     meta = lookup(symbol) or {}
@@ -101,8 +131,8 @@ def _analyze(symbol: str) -> dict | None:
     try:
         from ..db.store import record_signal
         record_signal(symbol, adjusted_score, verdict, round(price, 2))
-    except Exception:
-        pass
+    except Exception as exc:
+        log.warning("signal history write failed for %s: %s", symbol, exc)
     high52 = float(df["High"].tail(252).max())
     low52 = float(df["Low"].tail(252).min())
 
@@ -124,6 +154,7 @@ def _analyze(symbol: str) -> dict | None:
         "levels": lvl,
         "pivots": pivots,
         "tradePlan": plan,
+        "relativeStrength": rs,
         "stats": {
             "high52w": round(high52, 2),
             "low52w": round(low52, 2),

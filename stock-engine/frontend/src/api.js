@@ -14,7 +14,9 @@ export const api = {
   search: (q) => get(`/api/symbols/search?q=${encodeURIComponent(q)}`),
   quote: (symbol) => get(`/api/stocks/${symbol}/quote`),
   history: (symbol, range) => get(`/api/stocks/${symbol}/history?range=${range}`),
-  analysis: (symbol) => get(`/api/stocks/${symbol}/analysis`),
+  analysis: (symbol, accountSize = 100000, riskPct = 1) =>
+    get(`/api/stocks/${symbol}/analysis?account_size=${accountSize}&risk_pct=${riskPct}`),
+  backtest: (symbol) => get(`/api/stocks/${symbol}/backtest`),
   stockNews: (symbol) => get(`/api/stocks/${symbol}/news`),
   marketNews: () => get('/api/news/market'),
   overview: () => get('/api/market/overview'),
@@ -22,6 +24,12 @@ export const api = {
   screener: (scan, type) =>
     get(`/api/screener?scan=${scan}${type ? `&type=${type}` : ''}`),
   etfs: () => get('/api/etfs'),
+  etfLeaders: () => get('/api/etfs/leaders'),
+  mfSearch: (q) => get(`/api/mutual-funds/search?q=${encodeURIComponent(q)}`),
+  mfDetail: (code) => get(`/api/mutual-funds/${code}`),
+  mfLeaders: (category) => get(`/api/mutual-funds/leaders?category=${encodeURIComponent(category)}`),
+  advisorPortfolio: (horizon, reaction) =>
+    get(`/api/advisor/portfolio?horizon=${encodeURIComponent(horizon)}&reaction=${encodeURIComponent(reaction)}`),
   watchlist: {
     get: (clientId) => get(`/api/watchlist?client_id=${clientId}`),
     add: (clientId, symbol) =>

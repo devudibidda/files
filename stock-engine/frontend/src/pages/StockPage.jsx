@@ -4,7 +4,7 @@ import { api, clientId, fmt } from '../api';
 import NewsList from '../components/NewsList';
 import PriceChart from '../components/PriceChart';
 import VerdictGauge from '../components/VerdictGauge';
-import { ChangePct, DemoBanner, ErrorNote, SectionTitle, SentimentChip, Skeleton, VerdictBadge } from '../components/ui';
+import { ChangePct, ErrorNote, Reveal, SectionTitle, SentimentChip, Skeleton, VerdictBadge } from '../components/ui';
 import { useFetch } from '../hooks';
 
 const RANGES = ['1mo', '3mo', '6mo', '1y', '2y'];
@@ -14,7 +14,7 @@ function Header({ quote, analysis, onWatch, watched }) {
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-extrabold tracking-tight text-white">{quote.symbol}</h1>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{quote.symbol}</h1>
           <VerdictBadge verdict={analysis?.verdict} />
           <button
             onClick={onWatch}
@@ -39,8 +39,10 @@ function Header({ quote, analysis, onWatch, watched }) {
   );
 }
 
-function TradePlanCard({ plan, verdict }) {
+function TradePlanCard({ plan, verdict, accountSize, riskPct, onParams }) {
   if (!plan) return null;
+  const [acct, setAcct] = useState(String(accountSize));
+  const [risk, setRisk] = useState(String(riskPct));
   const actionLabel = {
     BUY: 'Buy',
     BUY_ON_DIP: 'Buy on dip',
@@ -56,10 +58,20 @@ function TradePlanCard({ plan, verdict }) {
       </div>
     );
 
+  const applySizing = () => {
+    const a = Number(acct);
+    const r = Number(risk);
+    if (a > 0 && r > 0 && r <= 100) onParams(a, r);
+  };
+  const inputCls =
+    'mt-1 w-full rounded-lg border border-white/10 bg-ink-800 px-2 py-1.5 text-sm text-white outline-none focus:border-brand-500';
+  const sizing = plan.positionSizing;
+  const showSizing = plan.action === 'BUY' || plan.action === 'BUY_ON_DIP';
+
   return (
     <div className="card-pad">
       <SectionTitle right={<VerdictBadge verdict={verdict} />}>Trade plan</SectionTitle>
-      <div className="mb-3 rounded-xl bg-ink-700/60 px-3 py-2 text-center text-sm font-bold tracking-wide text-white">
+      <div className="mb-3 rounded-xl border border-white/10 bg-gradient-to-r from-brand-500/25 via-white/[0.05] to-bull/20 px-3 py-2 text-center text-sm font-bold tracking-wide text-white backdrop-blur">
         {actionLabel}
       </div>
       <div className="divide-y divide-ink-700">
@@ -69,6 +81,31 @@ function TradePlanCard({ plan, verdict }) {
         {row('Target 2 (2.5R)', plan.target2 != null ? fmt.price(plan.target2) : null, 'text-bull')}
         {row('Risk : Reward', plan.riskReward != null ? `1 : ${plan.riskReward}` : null)}
       </div>
+      {showSizing && (
+        <>
+          <div className="mt-4 grid grid-cols-2 gap-2 border-t border-ink-700 pt-3">
+            <label className="text-xs text-slate-500">
+              Account size (₹)
+              <input value={acct} onChange={(e) => setAcct(e.target.value)} onBlur={applySizing} onKeyDown={(e) => e.key === 'Enter' && applySizing()} inputMode="numeric" className={inputCls} />
+            </label>
+            <label className="text-xs text-slate-500">
+              Risk per trade (%)
+              <input value={risk} onChange={(e) => setRisk(e.target.value)} onBlur={applySizing} onKeyDown={(e) => e.key === 'Enter' && applySizing()} inputMode="decimal" className={inputCls} />
+            </label>
+          </div>
+          {sizing && (
+            <div className="mt-2 divide-y divide-ink-700">
+              {row('Shares to buy', fmt.num(sizing.shares))}
+              {row('Risk amount', fmt.price(sizing.riskAmount))}
+              {row('Capital required', fmt.price(sizing.capitalRequired))}
+              {row('Of account', `${sizing.pctOfAccount}%`)}
+            </div>
+          )}
+          <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+            Sizing caps the loss at your chosen risk if the stop-loss holds. Educational only — not investment advice.
+          </p>
+        </>
+      )}
       {plan.notes?.length > 0 && (
         <ul className="mt-3 space-y-1.5">
           {plan.notes.map((n, i) => (
@@ -89,7 +126,7 @@ function IndicatorTable({ votes }) {
     neutral: 'text-slate-400 bg-ink-700',
   };
   return (
-    <div className="card overflow-hidden">
+    <div className="card card-hover overflow-hidden">
       <div className="px-5 pt-4">
         <SectionTitle>Indicator breakdown</SectionTitle>
       </div>
@@ -129,7 +166,7 @@ function LevelsCard({ levels, pivots, price }) {
     </div>
   );
   return (
-    <div className="card-pad">
+    <div className="card-pad card-hover">
       <SectionTitle>Key levels</SectionTitle>
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -156,13 +193,100 @@ function LevelsCard({ levels, pivots, price }) {
   );
 }
 
+function KeyLevelsStrip({ a }) {
+  if (!a) return null;
+  const sup = a.levels?.supports?.[0];
+  const res = a.levels?.resistances?.[0];
+  return (
+    <div className="card-pad flex flex-wrap gap-x-6 gap-y-2 text-sm">
+      <span className="text-slate-500">
+        Nearest support <span className="num font-semibold text-bull">{sup ? fmt.price(sup.level) : '—'}</span>
+      </span>
+      <span className="text-slate-500">
+        Nearest resistance <span className="num font-semibold text-bear">{res ? fmt.price(res.level) : '—'}</span>
+      </span>
+      <span className="text-slate-500">
+        52w high <span className="num font-semibold text-slate-200">{fmt.price(a.stats.high52w)}</span>
+        <span className="num text-slate-400"> ({fmt.pct(a.stats.distFromHigh52wPct)})</span>
+      </span>
+    </div>
+  );
+}
+
+function BacktestCard({ symbol }) {
+  const bt = useFetch(() => api.backtest(symbol), [symbol]);
+  if (bt.loading) return <Skeleton className="h-40" />;
+  if (bt.error || !bt.data) return null;
+  const d = bt.data;
+  const row = (label, value, cls = 'text-slate-200') => (
+    <div className="flex items-center justify-between py-1.5">
+      <span className="text-xs text-slate-500">{label}</span>
+      <span className={`num text-sm font-semibold ${cls}`}>{value}</span>
+    </div>
+  );
+  return (
+    <div id="backtest" className="card-pad card-hover">
+      <SectionTitle>Do Buy signals work here? — Backtest</SectionTitle>
+      <div className="divide-y divide-ink-700">
+        {row('Buy signals (last ~2y)', fmt.num(d.signals))}
+        {row('10-day win rate', d.winRate10d != null ? `${d.winRate10d}%` : '—')}
+        {row('10-day avg return', d.avgReturn10d != null ? fmt.pct(d.avgReturn10d) : '—')}
+        {row('20-day win rate', d.winRate20d != null ? `${d.winRate20d}%` : '—')}
+        {row('20-day avg return', d.avgReturn20d != null ? fmt.pct(d.avgReturn20d) : '—')}
+        {row('Buy-and-hold 20-day avg', d.baseline20d != null ? fmt.pct(d.baseline20d) : '—')}
+      </div>
+      <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+        {d.method} Past signals do not predict future returns.
+      </p>
+    </div>
+  );
+}
+
+function RelativeStrengthCard({ rs }) {
+  if (!rs) return null;
+  return (
+    <div className="card-pad card-hover">
+      <SectionTitle>vs NIFTY 50</SectionTitle>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr>
+              <th className="table-head">Period</th>
+              <th className="table-head">Stock</th>
+              <th className="table-head">NIFTY 50</th>
+              <th className="table-head">Outperformance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(rs).map(([period, v]) => (
+              <tr key={period} className="hover:bg-ink-700/40 transition-colors">
+                <td className="table-cell font-semibold text-slate-200">{period}</td>
+                <td className="table-cell num text-slate-400">{fmt.pct(v.stock)}</td>
+                <td className="table-cell num text-slate-400">{fmt.pct(v.nifty)}</td>
+                <td className="table-cell num font-semibold">
+                  <ChangePct value={v.outperformance} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+        Outperformance = stock return minus NIFTY 50 return over the same trading days.
+      </p>
+    </div>
+  );
+}
+
 export default function StockPage() {
   const { symbol } = useParams();
   const [range, setRange] = useState('1y');
   const [tab, setTab] = useState('technicals');
+  const [accountSize, setAccountSize] = useState(100000);
+  const [riskPct, setRiskPct] = useState(1);
 
   const quote = useFetch(() => api.quote(symbol), [symbol]);
-  const analysis = useFetch(() => api.analysis(symbol), [symbol]);
+  const analysis = useFetch(() => api.analysis(symbol, accountSize, riskPct), [symbol, accountSize, riskPct]);
   const history = useFetch(() => api.history(symbol, range), [symbol, range]);
   const news = useFetch(() => api.stockNews(symbol), [symbol]);
 
@@ -184,12 +308,13 @@ export default function StockPage() {
 
   return (
     <div className="space-y-5">
-      <DemoBanner source={quote.data.source} />
       <Header quote={quote.data} analysis={a} onWatch={toggleWatch} watched={watched} />
+      <KeyLevelsStrip a={a} />
 
       <div className="grid gap-4 xl:grid-cols-3">
         {/* chart column */}
-        <div className="card-pad xl:col-span-2">
+        <Reveal className="xl:col-span-2">
+        <div className="card-pad card-hover">
           <div className="mb-3 flex items-center gap-1">
             {RANGES.map((r) => (
               <button key={r} onClick={() => setRange(r)} className={`btn-pill ${range === r ? 'btn-pill-active' : ''}`}>
@@ -205,10 +330,12 @@ export default function StockPage() {
             <PriceChart candles={history.data.candles} overlays={history.data.overlays} />
           )}
         </div>
+        </Reveal>
 
         {/* analysis column */}
+        <Reveal delay={90}>
         <div className="space-y-4">
-          <div className="card-pad">
+          <div className="card-pad card-hover">
             <SectionTitle>Composite verdict</SectionTitle>
             {analysis.loading ? (
               <Skeleton className="h-52" />
@@ -237,11 +364,21 @@ export default function StockPage() {
               </>
             )}
           </div>
-          {a && <TradePlanCard plan={a.tradePlan} verdict={a.verdict} />}
+          {a && (
+            <TradePlanCard
+              plan={a.tradePlan}
+              verdict={a.verdict}
+              accountSize={accountSize}
+              riskPct={riskPct}
+              onParams={(acct, r) => { setAccountSize(acct); setRiskPct(r); }}
+            />
+          )}
         </div>
+        </Reveal>
       </div>
 
       {/* tabs */}
+      <Reveal delay={120}>
       <div>
         <div className="mb-4 flex gap-1 border-b border-ink-700">
           {[
@@ -266,7 +403,7 @@ export default function StockPage() {
         {tab === 'levels' && a && (
           <div className="grid gap-4 md:grid-cols-2">
             <LevelsCard levels={a.levels} pivots={a.pivots} price={a.price} />
-            <div className="card-pad">
+            <div className="card-pad card-hover">
               <SectionTitle>52-week stats</SectionTitle>
               <div className="divide-y divide-ink-700">
                 {[
@@ -284,15 +421,21 @@ export default function StockPage() {
               </div>
               <p className="mt-4 text-xs leading-relaxed text-slate-500">{a.weeklyTrend.reason}</p>
             </div>
+            <RelativeStrengthCard rs={a.relativeStrength} />
           </div>
         )}
 
         {tab === 'news' && (
-          <div className="card-pad">
+          <div className="card-pad card-hover">
             {news.loading ? <Skeleton className="h-40" /> : <NewsList items={news.data?.items} />}
           </div>
         )}
       </div>
+      </Reveal>
+
+      <Reveal>
+        <BacktestCard symbol={symbol} />
+      </Reveal>
     </div>
   );
 }

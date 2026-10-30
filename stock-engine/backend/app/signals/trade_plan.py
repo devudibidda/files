@@ -1,11 +1,43 @@
 """Trade plan generation: entry zone, stop-loss, targets, risk-reward."""
+import math
+
 import pandas as pd
+
+
+def position_sizing(entry: float, stop: float, account_size: float, risk_pct: float) -> dict | None:
+    """How many shares for a fixed account risk.
+
+    risk_amount = account_size * risk_pct / 100, spread over the per-share
+    risk (entry - stop). Shares are floored so the risk cap is never exceeded.
+    Returns None when the plan has no usable long entry/stop.
+    """
+    if entry is None or stop is None:
+        return None
+    if account_size is None or account_size <= 0 or risk_pct is None or risk_pct <= 0:
+        return None
+    risk_per_share = entry - stop
+    if risk_per_share <= 0:
+        return None
+    risk_amount = account_size * risk_pct / 100.0
+    shares = math.floor(risk_amount / risk_per_share)
+    if shares <= 0:
+        return None
+    capital = round(shares * entry, 2)
+    return {
+        "shares": shares,
+        "riskPerShare": round(risk_per_share, 2),
+        "riskAmount": round(risk_amount, 2),
+        "capitalRequired": capital,
+        "pctOfAccount": round(capital / account_size * 100, 1),
+    }
 
 
 def build_trade_plan(
     enriched: pd.DataFrame,
     verdict: str,
     levels: dict,
+    account_size: float = 100000,
+    risk_pct: float = 1.0,
 ) -> dict:
     last = enriched.iloc[-1]
     price = float(last["Close"])
@@ -24,6 +56,7 @@ def build_trade_plan(
         "target1": None,
         "target2": None,
         "riskReward": None,
+        "positionSizing": None,
         "notes": [],
     }
 
@@ -69,6 +102,7 @@ def build_trade_plan(
             "target2": round(t2, 2),
             "riskReward": round((t1 - entry) / risk, 2),
         })
+        plan["positionSizing"] = position_sizing(entry, stop, account_size, risk_pct)
         if nearest_resistance and nearest_resistance < t1:
             plan["notes"].append(
                 f"Caution: resistance at ₹{nearest_resistance} sits before target 1 — "

@@ -1,25 +1,52 @@
 import { api, fmt } from '../api';
-import { ChangePct, ErrorNote, SectionTitle, Skeleton, SymbolLink, VerdictBadge } from '../components/ui';
+import { ChangePct, ErrorNote, Reveal, SectionTitle, Skeleton, SymbolLink, VerdictBadge } from '../components/ui';
 import { useFetch } from '../hooks';
 
 export default function EtfPage() {
   const { data, error, loading, retry } = useFetch(() => api.screener('all', 'etf'), []);
+  const leaders = useFetch(() => api.etfLeaders(), []);
 
   if (loading) return <Skeleton className="h-96" />;
   if (error) return <ErrorNote error={error} retry={retry} />;
 
   const rows = data?.results || [];
+  const cats = leaders.data?.categories || [];
 
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-extrabold tracking-tight text-white">ETF hub</h1>
+        <h1 className="font-display text-xl font-extrabold tracking-tight text-white">ETF hub</h1>
         <p className="mt-1 text-sm text-slate-500">
           Curated NSE-listed ETFs — index, gold, sector, factor and international — ranked by composite signal score.
         </p>
       </div>
 
-      <div className="card overflow-hidden">
+      {cats.length > 0 && (
+        <Reveal><div className="card-pad card-hover">
+          <SectionTitle>Top picks per category</SectionTitle>
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {cats.map((c) => (
+              <div key={c.category}>
+                <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">{c.category}</div>
+                {c.leaders.map((r) => (
+                  <div key={r.symbol} className="flex items-center justify-between gap-2 py-1">
+                    <SymbolLink symbol={r.symbol} name={r.name} />
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span className={`num text-sm font-bold ${r.score >= 0 ? 'text-bull' : 'text-bear'}`}>
+                        {r.score > 0 ? `+${r.score}` : r.score}
+                      </span>
+                      <VerdictBadge verdict={r.verdict} />
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[11px] leading-relaxed text-slate-500">{leaders.data.method}</p>
+        </div></Reveal>
+      )}
+
+      <Reveal><div className="card card-hover overflow-hidden">
         <div className="px-5 pt-4">
           <SectionTitle>Analyzed ETFs (ranked by score)</SectionTitle>
         </div>
@@ -60,7 +87,7 @@ export default function EtfPage() {
           </table>
           {rows.length === 0 && <p className="py-10 text-center text-sm text-slate-500">ETF data is still loading on the server — try again shortly.</p>}
         </div>
-      </div>
+      </div></Reveal>
     </div>
   );
 }

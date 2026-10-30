@@ -78,21 +78,18 @@ def test_trade_plan_sell_structure(downtrend):
     assert plan["notes"]
 
 
-def test_full_analysis_demo_mode(monkeypatch):
-    monkeypatch.setenv("DEMO_MODE", "on")
-    import importlib
-
-    from app import config
-    importlib.reload(config)
-    from app.data import fetcher
-    importlib.reload(fetcher)
+def test_full_analysis_live_source(monkeypatch, uptrend):
+    from app.news import rss
     from app.signals import analysis
-    importlib.reload(analysis)
+
+    uptrend.attrs["source"] = "live"
+    monkeypatch.setattr(analysis, "get_history", lambda s, r="2y", i="1d": uptrend)
+    monkeypatch.setattr(rss, "stock_news", lambda s: [])
 
     report = analysis._analyze("RELIANCE")
     assert report is not None
     assert report["verdict"] in ("Strong Buy", "Buy", "Hold", "Sell", "Strong Sell")
     assert report["tradePlan"]["action"] is not None
     assert len(report["votes"]) >= 10
-    assert report["dataSource"] == "demo"
+    assert report["dataSource"] == "live"
     assert report["disclaimer"]

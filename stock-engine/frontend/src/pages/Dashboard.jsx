@@ -1,18 +1,22 @@
 import { Link } from 'react-router-dom';
 import { api, fmt } from '../api';
 import NewsList from '../components/NewsList';
-import { ChangePct, DemoBanner, ErrorNote, SectionTitle, Skeleton, SymbolLink, VerdictBadge } from '../components/ui';
+import { ChangePct, ErrorNote, Reveal, SectionTitle, Skeleton, SymbolLink, TiltCard, VerdictBadge } from '../components/ui';
 import { useFetch } from '../hooks';
 
 function IndexStrip({ indices }) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-1">
-      {indices.map((ix) => (
-        <div key={ix.yahoo} className="card min-w-[170px] shrink-0 px-4 py-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{ix.name}</div>
-          <div className="num mt-0.5 text-lg font-bold text-white">{fmt.num(ix.price)}</div>
-          <ChangePct value={ix.changePct} className="text-xs" />
-        </div>
+      {indices.map((ix, i) => (
+        <Reveal key={ix.yahoo} delay={i * 70} className="shrink-0">
+          <TiltCard className="h-full">
+            <div className="card h-full min-w-[170px] px-4 py-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{ix.name}</div>
+              <div className="num mt-0.5 text-lg font-bold text-white">{fmt.num(ix.price)}</div>
+              <ChangePct value={ix.changePct} className="text-xs" />
+            </div>
+          </TiltCard>
+        </Reveal>
       ))}
     </div>
   );
@@ -22,7 +26,7 @@ function BreadthBar({ breadth }) {
   const total = breadth.advancers + breadth.decliners + breadth.unchanged || 1;
   const advPct = (breadth.advancers / total) * 100;
   return (
-    <div className="card-pad">
+    <div className="card-pad card-hover">
       <SectionTitle>Market breadth</SectionTitle>
       <div className="flex h-3 overflow-hidden rounded-full bg-ink-700">
         <div className="bg-bull/80" style={{ width: `${advPct}%` }} />
@@ -38,7 +42,7 @@ function BreadthBar({ breadth }) {
 
 function MoversTable({ title, rows }) {
   return (
-    <div className="card overflow-hidden">
+    <div className="card card-hover overflow-hidden">
       <div className="px-5 pt-4">
         <SectionTitle>{title}</SectionTitle>
       </div>
@@ -75,8 +79,10 @@ function StrongBuys() {
   if (!rows.length) return <p className="text-sm text-slate-500">No Strong Buy signals right now.</p>;
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {rows.map((r) => (
-        <Link key={r.symbol} to={`/stock/${r.symbol}`} className="card-pad group transition-colors hover:border-ink-500">
+      {rows.map((r, i) => (
+        <Reveal key={r.symbol} delay={i * 70}>
+          <TiltCard className="h-full">
+            <Link to={`/stock/${r.symbol}`} className="card-pad group block h-full">
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="font-bold text-slate-100 group-hover:text-brand-400 transition-colors">{r.symbol}</div>
@@ -90,7 +96,9 @@ function StrongBuys() {
               Score <span className="num font-bold text-bull">+{r.score}</span>
             </span>
           </div>
-        </Link>
+            </Link>
+          </TiltCard>
+        </Reveal>
       ))}
     </div>
   );
@@ -112,13 +120,13 @@ export default function Dashboard() {
     );
   if (error) return <ErrorNote error={error} retry={retry} />;
 
-  const demo = data.indices[0]?.source === 'demo';
-
   return (
     <div className="space-y-6">
-      <DemoBanner source={demo ? 'demo' : 'live'} />
-      <IndexStrip indices={data.indices} />
+      <Reveal>
+        <IndexStrip indices={data.indices} />
+      </Reveal>
 
+      <Reveal delay={80}>
       <div>
         <SectionTitle
           right={
@@ -131,17 +139,22 @@ export default function Dashboard() {
         </SectionTitle>
         <StrongBuys />
       </div>
+      </Reveal>
 
+      <Reveal delay={120}>
       <div className="grid gap-4 lg:grid-cols-3">
         <MoversTable title="Top gainers" rows={data.topGainers} />
         <MoversTable title="Top losers" rows={data.topLosers} />
         <BreadthBar breadth={data.breadth} />
       </div>
+      </Reveal>
 
-      <div className="card-pad">
+      <Reveal delay={160}>
+      <div className="card-pad card-hover">
         <SectionTitle>Market news</SectionTitle>
         {news.loading ? <Skeleton className="h-40" /> : <NewsList items={news.data?.items?.slice(0, 10)} />}
       </div>
+      </Reveal>
     </div>
   );
 }

@@ -16,8 +16,8 @@ function Logo() {
           strokeLinejoin="round"
         />
       </svg>
-      <span className="text-lg font-extrabold tracking-tight text-white">
-        Trend<span className="text-brand-400">Wise</span>
+      <span className="font-display text-lg font-extrabold tracking-tight text-white">
+        Trend<span className="text-gradient">Wise</span>
       </span>
     </NavLink>
   );
@@ -95,10 +95,10 @@ function SearchBox() {
         onFocus={() => results.length && setOpen(true)}
         onKeyDown={onKeyDown}
         placeholder="Search stocks & ETFs — e.g. RELIANCE, Gold BeES"
-        className="w-full rounded-xl border border-ink-600 bg-ink-800 py-2 pl-9 pr-3 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-brand-500/60 focus:ring-2 focus:ring-brand-500/20"
+        className="w-full rounded-xl border border-white/10 bg-white/[0.06] py-2 pl-9 pr-3 text-sm text-slate-200 placeholder-slate-500 outline-none backdrop-blur-xl transition focus:border-brand-400/60 focus:ring-2 focus:ring-brand-500/25"
       />
       {open && results.length > 0 && (
-        <ul className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-ink-600 bg-ink-800 shadow-card">
+        <ul className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-ink-900/90 shadow-card backdrop-blur-xl">
           {results.map((r, i) => (
             <li key={r.symbol}>
               <button
@@ -125,15 +125,17 @@ function SearchBox() {
 }
 
 const links = [
+  { to: '/start', label: 'Start here' },
   { to: '/', label: 'Dashboard' },
   { to: '/screener', label: 'Screener' },
   { to: '/etfs', label: 'ETFs' },
+  { to: '/mutual-funds', label: 'Mutual Funds' },
   { to: '/watchlist', label: 'Watchlist' },
 ];
 
 export default function Navbar() {
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-700 bg-ink-900/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-ink-950/60 backdrop-blur-xl shadow-[0_8px_32px_-16px_rgba(0,0,0,0.8)]">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3 sm:px-6">
         <Logo />
         <nav className="hidden items-center gap-1 md:flex">

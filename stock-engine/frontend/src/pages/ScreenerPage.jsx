@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api';
 import { fmt } from '../api';
-import { ChangePct, ErrorNote, SectionTitle, Skeleton, SymbolLink, VerdictBadge } from '../components/ui';
+import { ChangePct, ErrorNote, Reveal, SectionTitle, Skeleton, SymbolLink, VerdictBadge } from '../components/ui';
 import { useFetch } from '../hooks';
 
 function ScoreBar({ score }) {
@@ -62,7 +62,8 @@ export default function ScreenerPage() {
       ) : error ? (
         <ErrorNote error={error} retry={retry} />
       ) : (
-        <div className="card overflow-hidden">
+        <Reveal>
+        <div className="card card-hover overflow-hidden">
           <div className="flex items-center justify-between px-5 pt-4">
             <SectionTitle>{data.label}</SectionTitle>
             <span className="text-xs text-slate-500">{data.results.length} matches</span>
@@ -112,7 +113,7 @@ export default function ScreenerPage() {
             </table>
             {data.results.length === 0 && <p className="py-10 text-center text-sm text-slate-500">No symbols match this scan right now.</p>}
           </div>
-        </div>
+        </div></Reveal>
       )}
     </div>
   );

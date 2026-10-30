@@ -32,8 +32,8 @@ export default function VerdictGauge({ score = 0, verdict, confidence }) {
         {arc(0.81, 1.0, '#10B981')}
         <line x1={cx} y1={cy} x2={needleX} y2={needleY} stroke="#E2E8F0" strokeWidth="3" strokeLinecap="round" />
         <circle cx={cx} cy={cy} r="6" fill="#E2E8F0" />
-        <text x="14" y="108" fontSize="9" fill="#64748B">STRONG SELL</text>
-        <text x="152" y="108" fontSize="9" fill="#64748B">STRONG BUY</text>
+        <text x="4" y="108" fontSize="9" fill="#64748B">STRONG SELL</text>
+        <text x="196" y="108" fontSize="9" fill="#64748B" textAnchor="end">STRONG BUY</text>
       </svg>
       <div className="-mt-2 text-center">
         <div className="num text-3xl font-extrabold text-white">{score > 0 ? `+${score}` : score}</div>

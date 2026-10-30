@@ -12,18 +12,21 @@ An intelligent technical-analysis engine for **Indian equities and ETFs (NSE)** 
 - **Trade plans**: entry zone / pullback logic, ATR + swing-low stop-loss, 1.5R / 2.5R targets, risk-reward, resistance warnings
 - **News sentiment**: Economic Times / Moneycontrol / LiveMint RSS + Google News per stock, scored with VADER + a finance lexicon; nudges the composite score by up to ±10
 - **Market overview**: NIFTY/SENSEX/BANKNIFTY, top gainers/losers, advance-decline breadth
-- **Screener**: 10 scans (Strong Buy, oversold RSI, golden cross, near 52-week high, high volume, strong trend, …) across 140+ NSE stocks and 20 ETFs
+- **Screener**: 10 scans (Strong Buy, oversold RSI, golden cross, near 52-week high, high volume, strong trend, …) across 125 NSE equities and 20 ETFs
+- **ETF suggestions**: top 3 ETFs per category (index, gold, sector, factor, international, debt) ranked by composite signal score
+- **Mutual funds** (mfapi.in / AMFI NAV data): fund search, trailing returns (1M–5Y), volatility, max drawdown, monthly-SIP illustration, and top funds per category (Flexi/Large/Mid/Small Cap, ELSS, Index, Liquid) ranked by 3Y CAGR — NAV-based logic, not candle indicators, since NAV updates once a day
+- **My First Portfolio** (`/start`): a guided finder for new investors — a 3-question quiz (horizon, reaction to a fall, emergency fund) maps to Conservative / Balanced / Growth, then builds a starter mix of ETFs + mutual funds with an allocation percentage per pick, a job line (core / engine / cushion), numbered pros/cons, and a monthly-SIP rupee split. ETF index slot: broad-index names first, then highest score; gold slot fixed by role; liquid slot picked for stability with its trend verdict suppressed. Mutual-fund slots: best risk-adjusted return (3Y CAGR / volatility) among each category's top leaders, Direct Growth plans only. No small-cap in any beginner portfolio; expense ratio, manager tenure and holdings overlap are not available from the data sources and are flagged as such
 - **Watchlist + signal history**: SQLite by default, Supabase (free Postgres) when configured
-- **Demo mode**: when the market feed is unreachable, deterministic synthetic data keeps the whole product usable (`DEMO_MODE=auto|on|off`)
+- **Live data only**: prices come from Yahoo Finance's public chart API — there is no synthetic fallback; when the feed fails, endpoints return an honest error instead of made-up numbers
 
 ## Stack (all free)
 
 | Layer | Tech |
 |---|---|
-| Backend | Python 3.11, FastAPI, pandas, yfinance, feedparser, vaderSentiment, APScheduler |
+| Backend | Python 3.11, FastAPI, pandas, requests, feedparser, vaderSentiment, APScheduler |
 | Frontend | React 18, Vite, Tailwind CSS, TradingView lightweight-charts v5 |
 | Database | SQLite (default) or Supabase free tier |
-| Data | Yahoo Finance (NSE `.NS` tickers), free RSS news feeds — no API keys |
+| Data | Yahoo Finance (NSE `.NS` tickers), free RSS news feeds, mfapi.in (AMFI NAV data) — no API keys |
 
 ## Quickstart
 
@@ -49,7 +52,6 @@ Run backend tests: `cd backend && python -m pytest tests/`
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `DEMO_MODE` | `auto` | `auto` = live with synthetic fallback, `on` = always synthetic, `off` = live only |
 | `SUPABASE_URL` / `SUPABASE_KEY` | — | Use Supabase instead of SQLite (run `backend/supabase_schema.sql` first) |
 | `SQLITE_PATH` | `backend/trendwise.db` | Local database location |
 | `SCHEDULER` | `on` | Background cache pre-warming (market 5m, screener 15m, news 10m) |
@@ -74,7 +76,7 @@ Run backend tests: `cd backend && python -m pytest tests/`
 
 ## Free deployment
 
-1. **Backend → Render/Railway free tier**: root `backend/`, start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Set `DEMO_MODE=off` (or leave `auto` as a safety net).
+1. **Backend → Render/Railway free tier**: root `backend/`, start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. The app serves live data only — no demo mode exists.
 2. **Database → Supabase**: create a free project, run `backend/supabase_schema.sql` in the SQL editor, set `SUPABASE_URL` + `SUPABASE_KEY` on the backend.
 3. **Frontend → Vercel/Netlify**: root `frontend/`, build `npm run build`, output `dist/`, env `VITE_API_URL=https://<your-backend>`.
 
