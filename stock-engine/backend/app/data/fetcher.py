@@ -1,4 +1,4 @@
-"""Market data layer on top of Yahoo Finance's public chart API.
+"""Market data layer: Upstox first, Yahoo Finance's chart API as fallback.
 
 Live data only — there is no synthetic fallback anywhere in this module.
 All functions return plain pandas objects / dicts and never raise on
@@ -12,6 +12,7 @@ import pandas as pd
 from ..config import HISTORY_TTL, QUOTE_TTL
 from .cache import cache
 from .symbols import to_yahoo
+from . import upstox_chart
 from .yahoo_chart import fetch_chart
 
 log = logging.getLogger(__name__)
@@ -48,7 +49,13 @@ def get_history(symbol: str, range_: str = "1y", interval: str | None = None) ->
     if cached_df is not None:
         return cached_df
 
-    df = fetch_chart(ticker, period, interval)
+    # Upstox first when configured; Yahoo fallback covers unmapped
+    # symbols, unsupported ranges, and Upstox outages.
+    df = None
+    if upstox_chart.available():
+        df = upstox_chart.fetch_candles(symbol, range_, interval)
+    if df is None:
+        df = fetch_chart(ticker, period, interval)
     if df is None or df.empty:
         return None
     source = df.attrs.get("source", "live")
@@ -97,6 +104,26 @@ def get_quote(symbol: str) -> dict | None:
         "asOf": last.name.isoformat() if hasattr(last.name, "isoformat") else str(last.name),
         "source": df.attrs.get("source", "live"),
     }
+    # Live refresh: when Upstox answers, its quote is today's traded price
+    # while the daily frame's last bar may be yesterday's close. Only the
+    # price/day-OHLC/volume fields move; prevClose, 52-week extremes and
+    # asOf stay frame-derived, and any quote failure keeps frame values.
+    if upstox_chart.available():
+        live = upstox_chart.fetch_quote(symbol)
+        if live and live.get("price"):
+            price = float(live["price"])
+            q["price"] = round(price, 2)
+            q["change"] = round(price - prev_close, 2)
+            q["changePct"] = round((price - prev_close) / prev_close * 100, 2) if prev_close else None
+            for field, live_key in (
+                ("dayOpen", "dayOpen"),
+                ("dayHigh", "dayHigh"),
+                ("dayLow", "dayLow"),
+            ):
+                if live.get(live_key) is not None:
+                    q[field] = _clean(round(float(live[live_key]), 2))
+            if live.get("volume") is not None:
+                q["volume"] = int(live["volume"])
     cache.set(key, q, QUOTE_TTL)
     return q
 

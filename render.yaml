@@ -14,3 +14,8 @@ services:
         value: 3.11.0
       - key: SCHEDULER
         value: "off"
+      # Upstox Analytics Token (1-year, read-only). sync: false means the
+      # value is set in the Render dashboard, never in this repo; until it
+      # is set, the app falls back to Yahoo.
+      - key: UPSTOX_ANALYTICS_TOKEN
+        sync: false

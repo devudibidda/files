@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import scheduler
-from .config import CORS_ORIGINS, DISCLAIMER
+from .config import CORS_ORIGINS, DISCLAIMER, UPSTOX_ANALYTICS_TOKEN
 from .routers import advisor, market, mutual_funds, stocks, watchlist
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -45,7 +45,12 @@ app.include_router(watchlist.router)
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "dataSource": "live", "disclaimer": DISCLAIMER}
+    return {
+        "status": "ok",
+        "dataSource": "live",
+        "provider": "upstox" if UPSTOX_ANALYTICS_TOKEN else "yahoo",
+        "disclaimer": DISCLAIMER,
+    }
 
 
 # ---- Serve the built frontend (single-process deployment) ----
