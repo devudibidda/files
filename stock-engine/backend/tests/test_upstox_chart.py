@@ -33,7 +33,15 @@ def test_mapping_covers_universe_and_uses_exact_keys():
     assert mapping["JPL"] == "NSE_EQ|INE0BJO01010"
     # MOTHERSON must be the EQ equity row, not the D1 debenture row.
     assert mapping["MOTHERSON"] == "NSE_EQ|INE775A01035"
-    assert all(v.startswith("NSE_EQ|") for v in mapping.values())
+    assert mapping["^NSEI"] == "NSE_INDEX|Nifty 50"
+    assert mapping["^BSESN"] == "BSE_INDEX|SENSEX"
+    assert mapping["^NSEBANK"] == "NSE_INDEX|Nifty Bank"
+    assert mapping["^CNXIT"] == "NSE_INDEX|Nifty IT"
+    assert mapping["^INDIAVIX"] == "NSE_INDEX|India VIX"
+    assert all(
+        v.startswith(("NSE_EQ|", "NSE_INDEX|", "BSE_INDEX|"))
+        for v in mapping.values()
+    )
     mapped_eq = sum(1 for s, _n, _s in EQUITIES if s in mapping)
     mapped_etf = sum(1 for s, _n, _s in ETFS if s in mapping)
     assert (mapped_eq, mapped_etf) == (122, 18)
@@ -44,8 +52,10 @@ def test_instrument_key_lookup_and_unmapped():
     assert upstox_chart.instrument_key("reliance.ns") == "NSE_EQ|INE002A01018"
     for sym in ("TATAMOTORS", "ZOMATO", "LTIM", "ICICINXT50", "UTINIFTETF"):
         assert upstox_chart.instrument_key(sym) is None
-    # Indices are not in the Upstox mapping: they fall back to Yahoo.
-    assert upstox_chart.instrument_key("^NSEI") is None
+    # Indices are mapped to Upstox index keys (verified live 2026-11-01),
+    # so they no longer fall back to Yahoo on Render.
+    assert upstox_chart.instrument_key("^NSEI") == "NSE_INDEX|Nifty 50"
+    assert upstox_chart.instrument_key("^BSESN") == "BSE_INDEX|SENSEX"
 
 
 # ---- candle parsing ----

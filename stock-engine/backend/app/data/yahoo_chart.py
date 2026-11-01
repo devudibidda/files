@@ -99,27 +99,35 @@ def parse_chart_payload(result: dict, interval: str) -> pd.DataFrame | None:
     return df
 
 
-def fetch_chart(ticker: str, range_: str, interval: str) -> pd.DataFrame | None:
+def fetch_chart(ticker: str, range_: str, interval: str, fast: bool = False) -> pd.DataFrame | None:
     """Fetch OHLCV for a Yahoo ticker, or None when the feed fails.
 
     On a 429 the other host is NOT tried immediately (it shares the same
     per-IP quota, so an instant failover just doubles the burst); instead
     the round backs off and retries, up to 3 rounds.
+
+    fast=True is the hard-bounded mode used for index fallback in the
+    overview: a single attempt against the first host with a short
+    timeout and no backoff chain, so a dead Yahoo feed costs seconds,
+    not minutes, and the caller simply omits that index.
     """
+    rounds = (0.0,) if fast else _BACKOFFS
+    hosts = _HOSTS[:1] if fast else _HOSTS
+    timeout = 10 if fast else 20
     retry_after = 0.0
-    for round_no, backoff in enumerate(_BACKOFFS):
+    for round_no, backoff in enumerate(rounds):
         wait = max(backoff, retry_after)
         if wait:
             time.sleep(wait)
         retry_after = 0.0
-        for host in _HOSTS:
+        for host in hosts:
             _throttle()
             try:
                 resp = requests.get(
                     f"https://{host}/v8/finance/chart/{ticker}",
                     params={"range": range_, "interval": interval},
                     headers=_UA,
-                    timeout=20,
+                    timeout=timeout,
                 )
             except Exception as exc:
                 log.warning("chart fetch failed for %s via %s: %s", ticker, host, exc)

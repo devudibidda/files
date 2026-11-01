@@ -39,8 +39,13 @@ def _clean(value):
     return value
 
 
-def get_history(symbol: str, range_: str = "1y", interval: str | None = None) -> pd.DataFrame | None:
-    """Daily/intraday OHLCV as a DataFrame with Open/High/Low/Close/Volume columns."""
+def get_history(symbol: str, range_: str = "1y", interval: str | None = None, fast_fallback: bool = False) -> pd.DataFrame | None:
+    """Daily/intraday OHLCV as a DataFrame with Open/High/Low/Close/Volume columns.
+
+    fast_fallback=True bounds the Yahoo fallback to a single quick
+    attempt (used for overview indices, where a dead feed must cost
+    seconds, not the full backoff chain).
+    """
     period, default_interval = RANGE_PRESETS.get(range_, ("1y", "1d"))
     interval = interval or default_interval
     ticker = to_yahoo(symbol)
@@ -55,7 +60,9 @@ def get_history(symbol: str, range_: str = "1y", interval: str | None = None) ->
     if upstox_chart.available():
         df = upstox_chart.fetch_candles(symbol, range_, interval)
     if df is None:
-        df = fetch_chart(ticker, period, interval)
+        # Positional fast flag: keeps the existing *args-only test
+        # doubles working (they predate the flag).
+        df = fetch_chart(ticker, period, interval, fast_fallback)
     if df is None or df.empty:
         return None
     source = df.attrs.get("source", "live")
@@ -67,19 +74,23 @@ def get_history(symbol: str, range_: str = "1y", interval: str | None = None) ->
     return df
 
 
-def get_quote(symbol: str) -> dict | None:
+def get_quote(symbol: str, fast: bool = False) -> dict | None:
     """Lightweight quote built from recent daily candles (no fragile fast_info).
 
     Uses the 1y frame alone: its last two bars give price/prevClose/day
     OHLC and its full span gives the 52-week extremes, so a quote costs
     one Yahoo fetch instead of two (the old 3mo + 1y pair).
+
+    fast=True bounds the Yahoo fallback to a single quick attempt; it
+    only matters when Upstox cannot serve the symbol (overview indices
+    use it so a dead feed cannot stall the page).
     """
     ticker = to_yahoo(symbol)
     key = f"quote:{ticker}"
     q = cache.get(key)
     if q is not None:
         return q
-    df = get_history(symbol, "1y")
+    df = get_history(symbol, "1y", None, fast)
     if df is None or len(df) < 2:
         return None
     last, prev = df.iloc[-1], df.iloc[-2]
