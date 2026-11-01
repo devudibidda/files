@@ -50,11 +50,11 @@ export function clientId() {
 
 export const fmt = {
   price: (v) =>
-    v == null ? '—' : `₹${Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`,
-  pct: (v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${Number(v).toFixed(2)}%`),
-  num: (v) => (v == null ? '—' : Number(v).toLocaleString('en-IN')),
+    v == null ? '-' : `₹${Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`,
+  pct: (v) => (v == null ? '-' : `${v > 0 ? '+' : ''}${Number(v).toFixed(2)}%`),
+  num: (v) => (v == null ? '-' : Number(v).toLocaleString('en-IN')),
   compact: (v) => {
-    if (v == null) return '—';
+    if (v == null) return '-';
     if (v >= 1e7) return `${(v / 1e7).toFixed(1)} Cr`;
     if (v >= 1e5) return `${(v / 1e5).toFixed(1)} L`;
     return Number(v).toLocaleString('en-IN');

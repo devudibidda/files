@@ -60,7 +60,7 @@ export default function ScreenerPage() {
       {loading ? (
         <div className="space-y-3">
           <p className="py-2 text-center text-sm text-slate-400">
-            Scanning 145 symbols — this can take a moment on a first load…
+            Scanning 145 symbols, this can take a moment on a first load…
           </p>
           <Skeleton className="h-96" />
         </div>
@@ -102,8 +102,8 @@ export default function ScreenerPage() {
                     <td className="table-cell">
                       <VerdictBadge verdict={r.verdict} />
                     </td>
-                    <td className="table-cell num text-right text-slate-300">{r.rsi?.toFixed(0) ?? '—'}</td>
-                    <td className="table-cell num text-right text-slate-300">{r.adx?.toFixed(0) ?? '—'}</td>
+                    <td className="table-cell num text-right text-slate-300">{r.rsi?.toFixed(0) ?? '-'}</td>
+                    <td className="table-cell num text-right text-slate-300">{r.adx?.toFixed(0) ?? '-'}</td>
                     <td className="table-cell">
                       <span className={`text-xs font-semibold ${r.supertrend === 'bullish' ? 'text-bull' : 'text-bear'}`}>
                         {r.supertrend}

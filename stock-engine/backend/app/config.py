@@ -6,12 +6,12 @@ HISTORY_TTL = int(os.getenv("HISTORY_TTL", "3600"))
 NEWS_TTL = int(os.getenv("NEWS_TTL", "900"))
 ANALYSIS_TTL = int(os.getenv("ANALYSIS_TTL", "600"))
 
-# Upstox (optional — Yahoo is the fallback when unset). The Analytics
+# Upstox (optional, Yahoo is the fallback when unset). The Analytics
 # Token is a 1-year read-only token from the Developer Apps page; on
 # Render it is set in the dashboard, never committed to the repo.
 UPSTOX_ANALYTICS_TOKEN = os.getenv("UPSTOX_ANALYTICS_TOKEN", "")
 
-# Supabase (optional — falls back to SQLite when unset)
+# Supabase (optional, falls back to SQLite when unset)
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 

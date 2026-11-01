@@ -1,4 +1,4 @@
-"""Technical indicator engine — pure pandas/numpy implementations.
+"""Technical indicator engine, pure pandas/numpy implementations.
 
 Implemented here (instead of pandas-ta) to stay compatible with numpy 2.x
 and to keep every formula unit-testable. All functions take a DataFrame

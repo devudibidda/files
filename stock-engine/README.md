@@ -1,4 +1,4 @@
-# TrendWise — Indian Stock & ETF Analysis Engine
+# TrendWise - Indian Stock & ETF Analysis Engine
 
 An intelligent technical-analysis engine for **Indian equities and ETFs (NSE)** with a modern, brand-quality web UI. It computes 15+ technical indicators, scores them into a single **Strong Buy → Strong Sell verdict**, generates a concrete **trade plan** (entry zone, stop-loss, targets, risk-reward), and layers in **news sentiment** from free RSS feeds.
 
@@ -14,10 +14,10 @@ An intelligent technical-analysis engine for **Indian equities and ETFs (NSE)** 
 - **Market overview**: NIFTY/SENSEX/BANKNIFTY, top gainers/losers, advance-decline breadth
 - **Screener**: 10 scans (Strong Buy, oversold RSI, golden cross, near 52-week high, high volume, strong trend, …) across 125 NSE equities and 20 ETFs
 - **ETF suggestions**: top 3 ETFs per category (index, gold, sector, factor, international, debt) ranked by composite signal score
-- **Mutual funds** (mfapi.in / AMFI NAV data): fund search, trailing returns (1M–5Y), volatility, max drawdown, monthly-SIP illustration, and top funds per category (Flexi/Large/Mid/Small Cap, ELSS, Index, Liquid) ranked by 3Y CAGR — NAV-based logic, not candle indicators, since NAV updates once a day
-- **My First Portfolio** (`/start`): a guided finder for new investors — a 3-question quiz (horizon, reaction to a fall, emergency fund) maps to Conservative / Balanced / Growth, then builds a starter mix of ETFs + mutual funds with an allocation percentage per pick, a job line (core / engine / cushion), numbered pros/cons, and a monthly-SIP rupee split. ETF index slot: broad-index names first, then highest score; gold slot fixed by role; liquid slot picked for stability with its trend verdict suppressed. Mutual-fund slots: best risk-adjusted return (3Y CAGR / volatility) among each category's top leaders, Direct Growth plans only. No small-cap in any beginner portfolio; expense ratio, manager tenure and holdings overlap are not available from the data sources and are flagged as such
+- **Mutual funds** (mfapi.in / AMFI NAV data): fund search, trailing returns (1M–5Y), volatility, max drawdown, monthly-SIP illustration, and top funds per category (Flexi/Large/Mid/Small Cap, ELSS, Index, Liquid) ranked by 3Y CAGR, NAV-based logic, not candle indicators, since NAV updates once a day
+- **My First Portfolio** (`/start`): a guided finder for new investors, a 3-question quiz (horizon, reaction to a fall, emergency fund) maps to Conservative / Balanced / Growth, then builds a starter mix of ETFs + mutual funds with an allocation percentage per pick, a job line (core / engine / cushion), numbered pros/cons, and a monthly-SIP rupee split. ETF index slot: broad-index names first, then highest score; gold slot fixed by role; liquid slot picked for stability with its trend verdict suppressed. Mutual-fund slots: best risk-adjusted return (3Y CAGR / volatility) among each category's top leaders, Direct Growth plans only. No small-cap in any beginner portfolio; expense ratio, manager tenure and holdings overlap are not available from the data sources and are flagged as such
 - **Watchlist + signal history**: SQLite by default, Supabase (free Postgres) when configured
-- **Live data only**: prices come from Yahoo Finance's public chart API — there is no synthetic fallback; when the feed fails, endpoints return an honest error instead of made-up numbers
+- **Live data only**: prices come from Yahoo Finance's public chart API, there is no synthetic fallback; when the feed fails, endpoints return an honest error instead of made-up numbers
 
 ## Stack (all free)
 
@@ -26,7 +26,7 @@ An intelligent technical-analysis engine for **Indian equities and ETFs (NSE)** 
 | Backend | Python 3.11, FastAPI, pandas, requests, feedparser, vaderSentiment, APScheduler |
 | Frontend | React 18, Vite, Tailwind CSS, TradingView lightweight-charts v5 |
 | Database | SQLite (default) or Supabase free tier |
-| Data | Yahoo Finance (NSE `.NS` tickers), free RSS news feeds, mfapi.in (AMFI NAV data) — no API keys |
+| Data | Yahoo Finance (NSE `.NS` tickers), free RSS news feeds, mfapi.in (AMFI NAV data), no API keys |
 
 ## Quickstart
 
@@ -52,12 +52,12 @@ Run backend tests: `cd backend && python -m pytest tests/`
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `SUPABASE_URL` / `SUPABASE_KEY` | — | Use Supabase instead of SQLite (run `backend/supabase_schema.sql` first) |
+| `SUPABASE_URL` / `SUPABASE_KEY` | - | Use Supabase instead of SQLite (run `backend/supabase_schema.sql` first) |
 | `SQLITE_PATH` | `backend/trendwise.db` | Local database location |
 | `SCHEDULER` | `on` | Background cache pre-warming (market 5m, screener 15m, news 10m) |
 | `CORS_ORIGINS` | `*` | Comma-separated allowed origins |
 | `QUOTE_TTL` / `HISTORY_TTL` / `NEWS_TTL` / `ANALYSIS_TTL` | 120/3600/900/600 s | Cache tuning |
-| `VITE_API_URL` (frontend) | — | Backend URL in production builds |
+| `VITE_API_URL` (frontend) | - | Backend URL in production builds |
 
 ## API overview
 
@@ -76,7 +76,7 @@ Run backend tests: `cd backend && python -m pytest tests/`
 
 ## Free deployment
 
-1. **Backend → Render free tier**: connect the repo and use the Blueprint (`render.yaml` at the repo root) — it builds the frontend and runs the backend as one free web service (sleeps after 15 idle minutes). The app serves live data only — no demo mode exists.
+1. **Backend → Render free tier**: connect the repo and use the Blueprint (`render.yaml` at the repo root), it builds the frontend and runs the backend as one free web service (sleeps after 15 idle minutes). The app serves live data only, no demo mode exists.
 2. **Database → Supabase**: create a free project, run `backend/supabase_schema.sql` in the SQL editor, set `SUPABASE_URL` + `SUPABASE_KEY` on the backend.
 3. **Frontend → Vercel/Netlify**: root `frontend/`, build `npm run build`, output `dist/`, env `VITE_API_URL=https://<your-backend>`.
 
@@ -84,4 +84,4 @@ Run backend tests: `cd backend && python -m pytest tests/`
 
 - Yahoo Finance is the pragmatic free source for NSE data (official NSE APIs block automated clients). Everything is cached (quotes ~2 min, EOD history 1 h) to stay well inside informal limits.
 - The screener's first cold run analyzes the whole universe (~1–2 min live); the scheduler keeps it warm afterwards.
-- Signals describe *technical posture*, not certainty. The weighted-confluence approach rewards agreement between independent indicator families (trend, momentum, volume, volatility) — the same logic a discretionary trader applies by eye, made systematic and explainable.
+- Signals describe *technical posture*, not certainty. The weighted-confluence approach rewards agreement between independent indicator families (trend, momentum, volume, volatility), the same logic a discretionary trader applies by eye, made systematic and explainable.

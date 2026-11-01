@@ -33,14 +33,14 @@ def _weekly_trend(df: pd.DataFrame) -> dict:
     bearish = last_close < last_e10 and (last_e40 is None or last_e10 < last_e40)
     if bullish and last_rsi > 50:
         return {"state": "bullish",
-                "reason": f"Weekly close is above the 10-week EMA with weekly RSI at {last_rsi:.0f} — "
+                "reason": f"Weekly close is above the 10-week EMA with weekly RSI at {last_rsi:.0f}, "
                           "the higher timeframe supports long trades."}
     if bearish and last_rsi < 50:
         return {"state": "bearish",
-                "reason": f"Weekly close is below the 10-week EMA with weekly RSI at {last_rsi:.0f} — "
+                "reason": f"Weekly close is below the 10-week EMA with weekly RSI at {last_rsi:.0f}, "
                           "the higher timeframe is against long trades."}
     return {"state": "neutral",
-            "reason": f"Weekly trend is transitioning (weekly RSI {last_rsi:.0f}) — no clear higher-timeframe edge."}
+            "reason": f"Weekly trend is transitioning (weekly RSI {last_rsi:.0f}), no clear higher-timeframe edge."}
 
 
 def _trend_summary(votes: list[dict], score: float, verdict: str, weekly: dict) -> str:

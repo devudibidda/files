@@ -1,7 +1,7 @@
 """The scan path must not fetch per-symbol news; the single-stock path must.
 
 Screener rows (screener._row) don't include newsSentiment, so the RSS fetch
-inside analyze() is pure overhead across the 145-symbol universe — it was
+inside analyze() is pure overhead across the 145-symbol universe, it was
 what made a cold scan take minutes and drop. The dashboard Strong Buy
 section goes through the same scan path (api.screener('strong_buy')), so it
 benefits automatically.

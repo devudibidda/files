@@ -102,7 +102,7 @@ function TradePlanCard({ plan, verdict, accountSize, riskPct, onParams }) {
             </div>
           )}
           <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
-            Sizing caps the loss at your chosen risk if the stop-loss holds. Educational only — not investment advice.
+            Sizing caps the loss at your chosen risk if the stop-loss holds. Educational only, not investment advice.
           </p>
         </>
       )}
@@ -200,10 +200,10 @@ function KeyLevelsStrip({ a }) {
   return (
     <div className="card-pad flex flex-wrap gap-x-6 gap-y-2 text-sm">
       <span className="text-slate-500">
-        Nearest support <span className="num font-semibold text-bull">{sup ? fmt.price(sup.level) : '—'}</span>
+        Nearest support <span className="num font-semibold text-bull">{sup ? fmt.price(sup.level) : '-'}</span>
       </span>
       <span className="text-slate-500">
-        Nearest resistance <span className="num font-semibold text-bear">{res ? fmt.price(res.level) : '—'}</span>
+        Nearest resistance <span className="num font-semibold text-bear">{res ? fmt.price(res.level) : '-'}</span>
       </span>
       <span className="text-slate-500">
         52w high <span className="num font-semibold text-slate-200">{fmt.price(a.stats.high52w)}</span>
@@ -226,14 +226,14 @@ function BacktestCard({ symbol }) {
   );
   return (
     <div id="backtest" className="card-pad card-hover">
-      <SectionTitle>Do Buy signals work here? — Backtest</SectionTitle>
+      <SectionTitle>Do Buy signals work here? - Backtest</SectionTitle>
       <div className="divide-y divide-ink-700">
         {row('Buy signals (last ~2y)', fmt.num(d.signals))}
-        {row('10-day win rate', d.winRate10d != null ? `${d.winRate10d}%` : '—')}
-        {row('10-day avg return', d.avgReturn10d != null ? fmt.pct(d.avgReturn10d) : '—')}
-        {row('20-day win rate', d.winRate20d != null ? `${d.winRate20d}%` : '—')}
-        {row('20-day avg return', d.avgReturn20d != null ? fmt.pct(d.avgReturn20d) : '—')}
-        {row('Buy-and-hold 20-day avg', d.baseline20d != null ? fmt.pct(d.baseline20d) : '—')}
+        {row('10-day win rate', d.winRate10d != null ? `${d.winRate10d}%` : '-')}
+        {row('10-day avg return', d.avgReturn10d != null ? fmt.pct(d.avgReturn10d) : '-')}
+        {row('20-day win rate', d.winRate20d != null ? `${d.winRate20d}%` : '-')}
+        {row('20-day avg return', d.avgReturn20d != null ? fmt.pct(d.avgReturn20d) : '-')}
+        {row('Buy-and-hold 20-day avg', d.baseline20d != null ? fmt.pct(d.baseline20d) : '-')}
       </div>
       <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
         {d.method} Past signals do not predict future returns.
@@ -411,7 +411,7 @@ export default function StockPage() {
                   ['52-week low', fmt.price(a.stats.low52w)],
                   ['From 52w high', fmt.pct(a.stats.distFromHigh52wPct)],
                   ['From 52w low', fmt.pct(a.stats.distFromLow52wPct)],
-                  ['ATR (volatility)', a.stats.atrPct != null ? `${a.stats.atrPct}% / day` : '—'],
+                  ['ATR (volatility)', a.stats.atrPct != null ? `${a.stats.atrPct}% / day` : '-'],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-center justify-between py-2">
                     <span className="text-xs text-slate-500">{label}</span>

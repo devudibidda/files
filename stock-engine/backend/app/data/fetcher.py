@@ -1,8 +1,8 @@
 """Market data layer: Upstox first, Yahoo Finance's chart API as fallback.
 
-Live data only — there is no synthetic fallback anywhere in this module.
+Live data only, there is no synthetic fallback anywhere in this module.
 All functions return plain pandas objects / dicts and never raise on
-provider hiccups — they return None so callers can respond 503/404 cleanly.
+provider hiccups, they return None so callers can respond 503/404 cleanly.
 """
 import logging
 import math

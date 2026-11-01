@@ -33,7 +33,7 @@ export default function App() {
       <footer className="border-t border-white/[0.06] py-6">
         <p className="mx-auto max-w-7xl px-6 text-xs leading-relaxed text-slate-500">
           TrendWise is an educational analysis tool, not SEBI-registered investment advice. Technical signals are
-          probabilistic, not guarantees — markets carry risk. Always do your own research before trading.
+          probabilistic, not guarantees, markets carry risk. Always do your own research before trading.
         </p>
       </footer>
       </div>

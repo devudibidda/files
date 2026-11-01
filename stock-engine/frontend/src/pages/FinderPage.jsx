@@ -16,9 +16,9 @@ const QUESTIONS = [
     id: 'reaction',
     title: 'If your ₹1,00,000 became ₹85,000 for a few months, what would you do?',
     options: [
-      ['panic', "I'd sell — I can't watch it fall"],
+      ['panic', "I'd sell - I can't watch it fall"],
       ['hold', "I'd hold and wait it out"],
-      ['invest', "I'd keep investing — falls are buying chances"],
+      ['invest', "I'd keep investing - falls are buying chances"],
     ],
   },
   {
@@ -32,10 +32,10 @@ const QUESTIONS = [
 ];
 
 const EDUCATION = [
-  'Start a monthly SIP, even a small one — don\'t wait for the "right time" to enter.',
+  'Start a monthly SIP, even a small one, don\'t wait for the "right time" to enter.',
   'Equity money is money you won\'t need for years. Review once a year, not daily.',
-  "Don't chase last year's winner — today's top-ranked fund is often tomorrow's average one.",
-  'Never stop the SIP because markets fell — that\'s when the same money buys more units.',
+  "Don't chase last year's winner - today's top-ranked fund is often tomorrow's average one.",
+  'Never stop the SIP because markets fell, that\'s when the same money buys more units.',
 ];
 
 function PickCard({ pick, monthly }) {
@@ -73,17 +73,17 @@ function PickCard({ pick, monthly }) {
         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-slate-400">
           {isMf ? (
             <>
-              <span>3Y CAGR <b className="text-slate-200 num">{pick.cagr3Y != null ? `${pick.cagr3Y}%` : '—'}</b></span>
-              <span>1Y <b className="text-slate-200 num">{pick.return1Y != null ? `${pick.return1Y}%` : '—'}</b></span>
-              <span>Volatility <b className="text-slate-200 num">{pick.volatilityPct != null ? `${pick.volatilityPct}% / yr` : '—'}</b></span>
-              <span>Max drawdown <b className="text-bear num">{pick.maxDrawdownPct != null ? `${pick.maxDrawdownPct}%` : '—'}</b></span>
+              <span>3Y CAGR <b className="text-slate-200 num">{pick.cagr3Y != null ? `${pick.cagr3Y}%` : '-'}</b></span>
+              <span>1Y <b className="text-slate-200 num">{pick.return1Y != null ? `${pick.return1Y}%` : '-'}</b></span>
+              <span>Volatility <b className="text-slate-200 num">{pick.volatilityPct != null ? `${pick.volatilityPct}% / yr` : '-'}</b></span>
+              <span>Max drawdown <b className="text-bear num">{pick.maxDrawdownPct != null ? `${pick.maxDrawdownPct}%` : '-'}</b></span>
             </>
           ) : (
             <>
               {pick.ratingNote ? (
                 <span className="text-amber-200">{pick.ratingNote}</span>
               ) : (
-                <span>Trend score <b className="text-slate-200 num">{pick.score != null ? pick.score.toFixed(1) : '—'}</b></span>
+                <span>Trend score <b className="text-slate-200 num">{pick.score != null ? pick.score.toFixed(1) : '-'}</b></span>
               )}
               {pick.verdict && <VerdictBadge verdict={pick.verdict} />}
             </>
@@ -150,7 +150,7 @@ export default function FinderPage() {
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
             Three quick questions, then a starter mix of ETFs and mutual funds with a percentage
-            for each — plus honest pros and cons. Built for someone investing for the first time.
+            for each, plus honest pros and cons. Built for someone investing for the first time.
           </p>
         </div>
       </Reveal>
@@ -211,7 +211,7 @@ export default function FinderPage() {
               {answers.emergency === 'no' && (
                 <div className="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm leading-relaxed text-amber-100">
                   <b>Before you invest a rupee:</b> set aside 3–6 months of expenses somewhere safe
-                  (a liquid fund works). The mix below is for <i>after</i> that safety net is ready —
+                  (a liquid fund works). The mix below is for <i>after</i> that safety net is ready,
                   equity money is money you won't need for years.
                 </div>
               )}

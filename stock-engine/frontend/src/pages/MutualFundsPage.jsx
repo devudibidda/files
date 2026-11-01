@@ -36,10 +36,10 @@ function FundDetail({ code, onClose }) {
           <span className="text-slate-500"> ({data.navDate})</span>
         </span>
         <span className="text-slate-500">
-          Volatility <span className="num font-semibold text-slate-200">{data.volatilityPct != null ? `${data.volatilityPct}% / yr` : '—'}</span>
+          Volatility <span className="num font-semibold text-slate-200">{data.volatilityPct != null ? `${data.volatilityPct}% / yr` : '-'}</span>
         </span>
         <span className="text-slate-500">
-          Max drawdown <span className="num font-semibold text-bear">{data.maxDrawdownPct != null ? `${data.maxDrawdownPct}%` : '—'}</span>
+          Max drawdown <span className="num font-semibold text-bear">{data.maxDrawdownPct != null ? `${data.maxDrawdownPct}%` : '-'}</span>
         </span>
       </div>
 
@@ -57,7 +57,7 @@ function FundDetail({ code, onClose }) {
               <tr key={label} className="hover:bg-ink-700/40 transition-colors">
                 <td className="table-cell font-semibold text-slate-200">{label}</td>
                 <td className="table-cell num text-right"><ChangePct value={v.returnPct} /></td>
-                <td className="table-cell num text-right">{v.cagrPct != null ? `${v.cagrPct > 0 ? '+' : ''}${v.cagrPct}%` : '—'}</td>
+                <td className="table-cell num text-right">{v.cagrPct != null ? `${v.cagrPct > 0 ? '+' : ''}${v.cagrPct}%` : '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -87,7 +87,7 @@ function FundDetail({ code, onClose }) {
                     <td className="table-cell num text-right text-slate-400">{fmt.price(v.invested)}</td>
                     <td className="table-cell num text-right text-slate-200">{fmt.price(v.value)}</td>
                     <td className="table-cell num text-right"><ChangePct value={v.gainPct} /></td>
-                    <td className="table-cell num text-right text-slate-400">{v.annualizedPct != null ? `${v.annualizedPct > 0 ? '+' : ''}${v.annualizedPct}%` : '—'}</td>
+                    <td className="table-cell num text-right text-slate-400">{v.annualizedPct != null ? `${v.annualizedPct > 0 ? '+' : ''}${v.annualizedPct}%` : '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -127,7 +127,7 @@ export default function MutualFundsPage() {
       <div>
         <h1 className="font-display text-xl font-extrabold tracking-tight text-white">Mutual funds</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Funds are analyzed from NAV history — trailing returns, volatility, drawdown and SIP illustration.
+          Funds are analyzed from NAV history, trailing returns, volatility, drawdown and SIP illustration.
           Unlike stocks and ETFs, funds get no intraday indicators: NAV updates once a day, so candle
           signals would be meaningless here.
         </p>
@@ -140,7 +140,7 @@ export default function MutualFundsPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && runSearch()}
-            placeholder="Search by fund name — e.g. Parag Parikh Flexi Cap"
+            placeholder="Search by fund name, e.g. Parag Parikh Flexi Cap"
             className="w-full rounded-xl border border-white/10 bg-ink-800 px-3 py-2 text-sm text-white outline-none focus:border-brand-500"
           />
           <button onClick={runSearch} className="btn-pill btn-pill-active shrink-0">Search</button>
@@ -204,7 +204,7 @@ export default function MutualFundsPage() {
                       </td>
                       <td className="table-cell num text-right"><ChangePct value={r.return1Y} /></td>
                       <td className="table-cell num text-right"><ChangePct value={r.cagr3Y} /></td>
-                      <td className="table-cell num text-right text-slate-400">{r.volatilityPct != null ? `${r.volatilityPct}%` : '—'}</td>
+                      <td className="table-cell num text-right text-slate-400">{r.volatilityPct != null ? `${r.volatilityPct}%` : '-'}</td>
                     </tr>
                   ))}
                 </tbody>

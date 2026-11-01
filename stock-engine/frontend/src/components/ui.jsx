@@ -8,7 +8,7 @@ export function VerdictBadge({ verdict, className = '' }) {
 }
 
 export function ChangePct({ value, className = '' }) {
-  if (value == null) return <span className="text-slate-500">—</span>;
+  if (value == null) return <span className="text-slate-500">-</span>;
   const up = value >= 0;
   return (
     <span className={`num font-semibold ${up ? 'text-bull' : 'text-bear'} ${className}`}>

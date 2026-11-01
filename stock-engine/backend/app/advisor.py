@@ -6,7 +6,7 @@ Strategy, synthesized 30 Oct 2026 from a three-agent brainstorm
 - At most 4 picks per portfolio; no small-cap anywhere for beginners.
 - ETF index slot: broad-index names first (Nifty 50 / Next 50), then the
   highest trend score. Gold slot is fixed by role (GOLDBEES). Liquid
-  slot is picked for stability only — its trend verdict is suppressed,
+  slot is picked for stability only, its trend verdict is suppressed,
   because liquid-ETF prices barely move and the score is noise.
 - Mutual-fund slot: best risk-adjusted return (3Y CAGR / volatility)
   among the top leaders of its category, Direct Growth plans only.
@@ -28,7 +28,7 @@ from .screener import scan_universe
 FINDER_TTL = 86400  # portfolio picks re-ranked at most daily
 
 DISCLAIMER = (
-    "Past performance does not guarantee future returns — this is an "
+    "Past performance does not guarantee future returns, this is an "
     "educational shortlist, not personal investment advice, so check "
     "each fund's risk, costs, and fit for your time horizon before "
     "investing."
@@ -36,7 +36,7 @@ DISCLAIMER = (
 
 KEY_SENTENCE = (
     "Start with a small monthly SIP, review only once a year, and let "
-    "time — not timing — do the work."
+    "time - not timing - do the work."
 )
 
 PROFILES = {
@@ -64,12 +64,12 @@ PROFILES = {
 }
 
 JOBS = {
-    "index_etf": "Core — steady market return",
-    "large_cap_mf": "Engine — higher growth, bigger swings",
-    "flexi_cap_mf": "Engine — higher growth, bigger swings",
-    "mid_cap_mf": "Engine — higher growth, bigger swings",
-    "liquid": "Cushion — steadies the ride",
-    "gold_etf": "Cushion — steadies the ride",
+    "index_etf": "Core: steady market return",
+    "large_cap_mf": "Engine: higher growth, bigger swings",
+    "flexi_cap_mf": "Engine: higher growth, bigger swings",
+    "mid_cap_mf": "Engine: higher growth, bigger swings",
+    "liquid": "Cushion: steadies the ride",
+    "gold_etf": "Cushion: steadies the ride",
 }
 
 MF_CATEGORY = {
@@ -78,7 +78,7 @@ MF_CATEGORY = {
     "mid_cap_mf": "mid-cap",
 }
 
-# Broad market indices only — sector, bank, mid-cap and small-cap ETFs
+# Broad market indices only, sector, bank, mid-cap and small-cap ETFs
 # must never win the "index" slot on score alone.
 BROAD_INDEX_MARKERS = ("Nifty 50", "Next 50")
 
@@ -123,7 +123,7 @@ def pick_etf(role: str, rows: list[dict] | None = None) -> dict | None:
             row = next((r for r in rows if r.get("sector") == "Gold ETF"), None)
         if row is None:
             return None
-        note = ("The only gold ETF in the universe — this slot is fixed "
+        note = ("The only gold ETF in the universe, this slot is fixed "
                 "by role, not by score.")
     elif role == "liquid":
         row = next((r for r in rows if r.get("symbol") == "LIQUIDBEES"), None)
@@ -131,7 +131,7 @@ def pick_etf(role: str, rows: list[dict] | None = None) -> dict | None:
             row = next((r for r in rows if r.get("sector") == "Debt ETF"), None)
         if row is None:
             return None
-        note = ("Picked for stability, not score — liquid-ETF prices "
+        note = ("Picked for stability, not score, liquid-ETF prices "
                 "barely move, so trend scores are meaningless here.")
     else:
         return None
@@ -142,7 +142,7 @@ def pick_etf(role: str, rows: list[dict] | None = None) -> dict | None:
         "source": row.get("source"),
         "score": row.get("score"),
         "verdict": None if role == "liquid" else row.get("verdict"),
-        "ratingNote": ("Not rated — price barely moves, so trend scores "
+        "ratingNote": ("Not rated, price barely moves, so trend scores "
                        "don't apply here.") if role == "liquid" else None,
         "selectionNote": note,
     }
@@ -193,14 +193,14 @@ def pick_mf(category: str) -> dict | None:
 
 def pros_cons(pick: dict) -> tuple[list[str], list[str]]:
     """Numbered pros/cons for one pick. Every figure is quoted from the
-    pick's own stats — no adjectives without numbers."""
+    pick's own stats, no adjectives without numbers."""
     pros, cons = [], []
     kind, role = pick.get("kind"), pick.get("role")
     if kind == "mf":
         cagr = pick.get("cagr3Y")
         if cagr is not None:
             pros.append(
-                f"3Y CAGR {cagr:.1f}% — highest risk-adjusted return "
+                f"3Y CAGR {cagr:.1f}%, highest risk-adjusted return "
                 f"among the scanned {pick.get('category')} Growth plans.")
         sip = pick.get("sip3Y") or {}
         if sip.get("value") is not None:
@@ -210,51 +210,51 @@ def pros_cons(pick: dict) -> tuple[list[str], list[str]]:
         r1y = pick.get("return1Y")
         if r1y is not None and r1y < 0:
             cons.append(
-                f"1Y return {r1y:.1f}% — the 3Y headline hides a weak "
+                f"1Y return {r1y:.1f}%, the 3Y headline hides a weak "
                 f"recent year.")
         dd = pick.get("maxDrawdownPct")
         if dd is not None and dd < 0:
             bottom = 100000 * (1 + dd / 100)
             cons.append(
                 f"Fell {abs(dd):.1f}% peak-to-trough in the last 3 "
-                f"years — a ₹1 lakh lump sum would have shown "
+                f"years, a ₹1 lakh lump sum would have shown "
                 f"₹{_inr(bottom)} at the bottom.")
         cons.append(
-            "Direct plan shown — Regular plans return less after "
+            "Direct plan shown, Regular plans return less after "
             "distributor commission.")
         cons.append(
-            "Equity pick — fits 5+ year horizons only; don't use money "
+            "Equity pick, fits 5+ year horizons only; don't use money "
             "needed sooner.")
     elif kind == "etf" and role == "index_etf":
         pros.append(
-            "One fund covering a broad market index — instant "
+            "One fund covering a broad market index, instant "
             "diversification, no fund-manager risk.")
         score = pick.get("score")
         if score is not None and score >= 20:
             pros.append(
-                f"Trend score {score:.0f} ({pick.get('verdict')}) — "
+                f"Trend score {score:.0f} ({pick.get('verdict')}), "
                 f"momentum is currently positive.")
         elif score is not None and score <= -20:
             cons.append(
-                f"Trend score {score:.0f} ({pick.get('verdict')}) — "
+                f"Trend score {score:.0f} ({pick.get('verdict')}), "
                 f"momentum is currently weak, so treat this as a "
                 f"long-term core, not a timing call.")
-        cons.append("Falls with the market — no protection in a correction.")
+        cons.append("Falls with the market, no protection in a correction.")
     elif kind == "etf" and role == "gold_etf":
         pros.append(
-            "Moves differently from stocks — often steadies the "
+            "Moves differently from stocks, often steadies the "
             "portfolio when equities fall.")
         cons.append(
-            "No income — no dividends or interest; can go through long "
+            "No income, no dividends or interest; can go through long "
             "dull stretches.")
         cons.append(
-            "Gold prices swing too — this is a hedge, not a safe deposit.")
+            "Gold prices swing too, this is a hedge, not a safe deposit.")
     elif kind == "etf" and role == "liquid":
         pros.append(
-            "Stability first — value barely fluctuates; the right "
+            "Stability first, value barely fluctuates; the right "
             "parking place for money needed soon.")
         cons.append(
-            "Returns roughly track inflation at best — this slice is "
+            "Returns roughly track inflation at best, this slice is "
             "for safety, not growth.")
     return pros, cons
 
@@ -305,7 +305,7 @@ def _build_portfolio(profile: str) -> dict | None:
         "incomplete": total != 100,
         "incompleteNote": (
             "One or more picks could not be loaded, so the percentages "
-            "below don't add up to 100 yet — retry later for the full mix."
+            "below don't add up to 100 yet, retry later for the full mix."
         ) if total != 100 else None,
         "source": "live",
         "method": (
@@ -318,7 +318,7 @@ def _build_portfolio(profile: str) -> dict | None:
         ),
         "coverageNote": (
             "Mutual-fund picks come from the first 20 matching Growth "
-            "plans per category with fresh NAVs — not the whole "
+            "plans per category with fresh NAVs, not the whole "
             "category. Shut-down or merged funds are excluded, so "
             "history looks rosier than the average investor's "
             "experience."
@@ -326,7 +326,7 @@ def _build_portfolio(profile: str) -> dict | None:
         "missingDataNote": (
             "Expense ratio, fund-manager tenure, holdings overlap, exit "
             "loads and the SEBI riskometer are not available from the "
-            "data sources used here — check them before investing. "
+            "data sources used here, check them before investing. "
             "Expense ratio is not shown; Regular plans cost more than "
             "the Direct plans shown."
         ),

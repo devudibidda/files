@@ -17,7 +17,7 @@ export default function EtfPage() {
       <div>
         <h1 className="font-display text-xl font-extrabold tracking-tight text-white">ETF hub</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Curated NSE-listed ETFs — index, gold, sector, factor and international — ranked by composite signal score.
+          Curated NSE-listed ETFs - index, gold, sector, factor and international - ranked by composite signal score.
         </p>
       </div>
 
@@ -77,7 +77,7 @@ export default function EtfPage() {
                   <td className="table-cell">
                     <VerdictBadge verdict={r.verdict} />
                   </td>
-                  <td className="table-cell num text-right text-slate-300">{r.rsi?.toFixed(0) ?? '—'}</td>
+                  <td className="table-cell num text-right text-slate-300">{r.rsi?.toFixed(0) ?? '-'}</td>
                   <td className="table-cell text-right">
                     <ChangePct value={r.distFromHigh52wPct} className="text-xs" />
                   </td>
@@ -85,7 +85,7 @@ export default function EtfPage() {
               ))}
             </tbody>
           </table>
-          {rows.length === 0 && <p className="py-10 text-center text-sm text-slate-500">ETF data is still loading on the server — try again shortly.</p>}
+          {rows.length === 0 && <p className="py-10 text-center text-sm text-slate-500">ETF data is still loading on the server, try again shortly.</p>}
         </div>
       </div></Reveal>
     </div>

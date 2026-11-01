@@ -68,7 +68,7 @@ export default function WatchlistPage() {
           <p className="text-4xl">★</p>
           <p className="mt-3 font-semibold text-slate-300">Your watchlist is empty</p>
           <p className="mt-1 text-sm text-slate-500">
-            Search for a stock and tap the star on its page — or start from the{' '}
+            Search for a stock and tap the star on its page, or start from the{' '}
             <Link to="/screener" className="text-brand-400 hover:underline">
               screener
             </Link>
@@ -114,14 +114,14 @@ export default function WatchlistPage() {
                             {a.score > 0 ? `+${a.score}` : a.score}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </td>
                       <td className="table-cell">
                         <VerdictBadge verdict={a?.verdict} />
                       </td>
                       <td className="table-cell text-xs text-slate-400">
-                        {a?.tradePlan?.action?.replaceAll('_', ' ').toLowerCase() ?? '—'}
+                        {a?.tradePlan?.action?.replaceAll('_', ' ').toLowerCase() ?? '-'}
                       </td>
                       <td className="table-cell text-right">
                         <button onClick={() => remove(s)} className="text-xs font-semibold text-slate-500 hover:text-bear transition-colors">

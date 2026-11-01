@@ -11,7 +11,7 @@ Method, kept deliberately honest:
   using today's news would leak the future.
 - Forward returns measured at 10 and 20 trading days; win = return > 0.
 - Windows overlap (a signal can fire on consecutive days), so signals are
-  not independent trades — the result is a hit-rate diagnostic, not a
+  not independent trades, the result is a hit-rate diagnostic, not a
   trading record. Past signals do not predict future returns.
 """
 import logging
@@ -95,5 +95,5 @@ def _backtest(symbol: str) -> dict | None:
         "dataSource": df.attrs.get("source", "live"),
         "method": "Indicator-only Buy/Strong Buy signals (weekly filter applied, "
                   "news sentiment excluded); forward returns at 10/20 trading days; "
-                  "overlapping windows — a hit-rate diagnostic, not a trading record.",
+                  "overlapping windows, a hit-rate diagnostic, not a trading record.",
     }

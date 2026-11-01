@@ -70,13 +70,13 @@ def build_trade_plan(
             entry_low, entry_high = round(pullback_ref, 2), round(price, 2)
             plan["action"] = "BUY"
             plan["notes"].append(
-                "Price is within 2% of its nearest demand zone — entering near current levels is reasonable."
+                "Price is within 2% of its nearest demand zone, entering near current levels is reasonable."
             )
         elif pullback_ref is not None:
             entry_low, entry_high = round(pullback_ref * 0.995, 2), round(pullback_ref * 1.01, 2)
             plan["action"] = "BUY_ON_DIP"
             plan["notes"].append(
-                f"Price is extended above support — a pullback entry near ₹{round(pullback_ref, 2)} "
+                f"Price is extended above support, a pullback entry near ₹{round(pullback_ref, 2)} "
                 f"(20-EMA / demand zone) offers better risk-reward."
             )
         else:
@@ -105,18 +105,18 @@ def build_trade_plan(
         plan["positionSizing"] = position_sizing(entry, stop, account_size, risk_pct)
         if nearest_resistance and nearest_resistance < t1:
             plan["notes"].append(
-                f"Caution: resistance at ₹{nearest_resistance} sits before target 1 — "
+                f"Caution: resistance at ₹{nearest_resistance} sits before target 1, "
                 "consider booking partial profits there."
             )
         if plan["riskReward"] < 1.5:
-            plan["notes"].append("Risk-reward below 1.5 — setup quality is marginal; size down or skip.")
+            plan["notes"].append("Risk-reward below 1.5, setup quality is marginal; size down or skip.")
 
     elif verdict in ("Sell", "Strong Sell"):
         plan["action"] = "AVOID_OR_EXIT"
         exit_trigger = nearest_support if nearest_support else round(price - 2 * atr, 2)
         plan["stopLoss"] = round(nearest_resistance * 1.01, 2) if nearest_resistance else round(price + 2 * atr, 2)
         plan["notes"].append(
-            "Technicals are bearish — fresh long entries are not favored."
+            "Technicals are bearish, fresh long entries are not favored."
         )
         plan["notes"].append(
             f"For existing holders: a close below support at ₹{round(exit_trigger, 2)} would confirm further downside; "
@@ -128,10 +128,10 @@ def build_trade_plan(
         if nearest_support and nearest_resistance:
             plan["entryZone"] = [round(nearest_support, 2), round(nearest_support * 1.01, 2)]
             plan["notes"].append(
-                f"Signals are mixed — the range is roughly ₹{nearest_support} (support) to "
+                f"Signals are mixed, the range is roughly ₹{nearest_support} (support) to "
                 f"₹{nearest_resistance} (resistance). Wait for a decisive break, or accumulate near support."
             )
         else:
-            plan["notes"].append("Signals are mixed — wait for a clearer trend before committing capital.")
+            plan["notes"].append("Signals are mixed, wait for a clearer trend before committing capital.")
 
     return plan
