@@ -79,12 +79,14 @@ def relative_strength(stock: pd.DataFrame, nifty: pd.DataFrame | None) -> dict |
     return out or None
 
 
-def analyze(symbol: str, account_size: float = 100000, risk_pct: float = 1.0) -> dict | None:
-    key = f"analysis:{symbol.upper()}:{account_size}:{risk_pct}"
-    return cached(key, ANALYSIS_TTL, lambda: _analyze(symbol, account_size, risk_pct))
+def analyze(symbol: str, account_size: float = 100000, risk_pct: float = 1.0,
+             include_news: bool = True) -> dict | None:
+    key = f"analysis:{symbol.upper()}:{account_size}:{risk_pct}:{include_news}"
+    return cached(key, ANALYSIS_TTL, lambda: _analyze(symbol, account_size, risk_pct, include_news))
 
 
-def _analyze(symbol: str, account_size: float = 100000, risk_pct: float = 1.0) -> dict | None:
+def _analyze(symbol: str, account_size: float = 100000, risk_pct: float = 1.0,
+             include_news: bool = True) -> dict | None:
     df = get_history(symbol, "2y", "1d")
     if df is None or len(df) < 60:
         return None
@@ -105,17 +107,21 @@ def _analyze(symbol: str, account_size: float = 100000, risk_pct: float = 1.0) -
         adjusted_score = round(score * 0.7, 1)
         verdict = verdict_for(adjusted_score)
 
-    # News sentiment nudges the score by up to ±10 (reported separately too)
+    # News sentiment nudges the score by up to ±10 (reported separately too).
+    # Skipped by the scan path: screener rows don't show it, so the per-symbol
+    # RSS fetch is pure overhead across the whole universe.
     news_sentiment = {"score": 0.0, "label": "neutral", "count": 0}
-    try:
-        from ..news.rss import stock_news
-        from ..news.sentiment import aggregate
-        headlines = stock_news(symbol) or []
-        news_sentiment = aggregate([h["sentiment"] for h in headlines])
-        news_adj = round(max(-10.0, min(10.0, news_sentiment["score"] * 20)), 1)
-    except Exception as exc:
-        log.warning("news sentiment failed for %s: %s", symbol, exc)
-        news_adj = 0.0
+    news_adj = 0.0
+    if include_news:
+        try:
+            from ..news.rss import stock_news
+            from ..news.sentiment import aggregate
+            headlines = stock_news(symbol) or []
+            news_sentiment = aggregate([h["sentiment"] for h in headlines])
+            news_adj = round(max(-10.0, min(10.0, news_sentiment["score"] * 20)), 1)
+        except Exception as exc:
+            log.warning("news sentiment failed for %s: %s", symbol, exc)
+            news_adj = 0.0
     adjusted_score = round(max(-100.0, min(100.0, adjusted_score + news_adj)), 1)
     verdict = verdict_for(adjusted_score)
 

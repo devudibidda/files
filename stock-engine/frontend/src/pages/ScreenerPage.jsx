@@ -58,7 +58,12 @@ export default function ScreenerPage() {
       </div>
 
       {loading ? (
-        <Skeleton className="h-96" />
+        <div className="space-y-3">
+          <p className="py-2 text-center text-sm text-slate-400">
+            Scanning 145 symbols — this can take a moment on a first load…
+          </p>
+          <Skeleton className="h-96" />
+        </div>
       ) : error ? (
         <ErrorNote error={error} retry={retry} />
       ) : (

@@ -1,5 +1,6 @@
 """Screener: run the analysis engine across the universe and filter."""
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 
 from .data.cache import cached
 from .data.symbols import ALL_SYMBOLS
@@ -70,8 +71,11 @@ def scan_universe(type_: str | None = None) -> list[dict]:
 
     def run():
         symbols = [e["symbol"] for e in ALL_SYMBOLS if type_ in (None, e["type"])]
+        # No news fetch: screener rows don't show sentiment, and the per-symbol
+        # RSS fetch is what made a cold scan take minutes (and drop). The
+        # single-stock page still calls analyze() with news on by default.
         with ThreadPoolExecutor(max_workers=8) as pool:
-            reports = list(pool.map(analyze, symbols))
+            reports = list(pool.map(partial(analyze, include_news=False), symbols))
         return [_row(r) for r in reports if r]
 
     return cached(key, 600, run)
