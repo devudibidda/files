@@ -84,7 +84,7 @@ def _daily_frame(symbol: str, range_: str) -> pd.DataFrame | None:
                     "High": live["dayHigh"],
                     "Low": live["dayLow"],
                     "Close": live["price"],
-                    "Volume": live.get("volume"),
+                    "Volume": live.get("volume") if live.get("volume") is not None else float("nan"),
                 }],
                 index=pd.DatetimeIndex(
                     [pd.Timestamp(today).tz_localize(history_store.IST)]
@@ -178,7 +178,7 @@ def get_quote(symbol: str, fast: bool = False) -> dict | None:
         "dayOpen": _clean(round(float(last["Open"]), 2)),
         "dayHigh": _clean(round(float(last["High"]), 2)),
         "dayLow": _clean(round(float(last["Low"]), 2)),
-        "volume": int(last["Volume"]) if not math.isnan(last["Volume"]) else None,
+        "volume": int(last["Volume"]) if last["Volume"] is not None and not math.isnan(last["Volume"]) else None,
         "high52w": _clean(round(high_52w, 2)) if high_52w else None,
         "low52w": _clean(round(low_52w, 2)) if low_52w else None,
         "asOf": last.name.isoformat() if hasattr(last.name, "isoformat") else str(last.name),

@@ -84,6 +84,37 @@ def test_load_slices_by_days(store, monkeypatch):
     assert frame.index.max().date().isoformat() == "2026-11-02"
 
 
+def test_load_coerces_null_volume_to_nan(store):
+    import math
+
+    frame = _frame_for_dates(["2026-10-30", "2026-11-02"], [100.0, 101.0])
+    frame.loc["2026-11-02", "Volume"] = float("nan")
+    store.upsert("RELIANCE", frame)
+    loaded = store.load("RELIANCE", 365)
+    assert loaded["Volume"].iloc[0] == 1_000_000.0
+    assert math.isnan(loaded["Volume"].iloc[1])
+
+
+def test_fetcher_quote_survives_null_volume_bar(store, monkeypatch):
+    from app.data import upstox_chart
+
+    frame = _frame_for_dates(["2026-10-30", "2026-11-02"], [100.0, 101.0])
+    frame.loc["2026-11-02", "Volume"] = float("nan")
+    store.upsert("RELIANCE", frame)
+    store.mark_synced("RELIANCE")
+    monkeypatch.setattr(upstox_chart, "available", lambda: True)
+    monkeypatch.setattr(upstox_chart, "instrument_key", lambda symbol: "NSE_EQ|TEST")
+    monkeypatch.setattr(upstox_chart, "fetch_candles", lambda *a: (_ for _ in ()).throw(AssertionError("store should serve")))
+    monkeypatch.setattr(upstox_chart, "fetch_quote", lambda symbol: None)
+    monkeypatch.setattr(store, "appendable_today", lambda: False)
+    cache.clear()
+    quote = fetcher.get_quote("RELIANCE")
+    assert quote is not None
+    assert quote["volume"] is None
+    assert quote["price"] == 101.0
+    cache.clear()
+
+
 def test_fetcher_serves_second_call_from_store(store, monkeypatch):
     from app.data import upstox_chart
 

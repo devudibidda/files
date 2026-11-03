@@ -209,5 +209,9 @@ def load(symbol: str, days: int) -> pd.DataFrame | None:
         },
         index=index,
     )
+    # NULLs in SQLite (a provider bar with no volume) become NaN, never
+    # None: downstream code calls math.isnan on these columns, and
+    # math.isnan(None) raises TypeError.
+    df = df.apply(pd.to_numeric, errors="coerce")
     df.attrs["source"] = "upstox"
     return df
