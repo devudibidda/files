@@ -12,6 +12,7 @@ import pandas as pd
 from ..config import HISTORY_TTL, QUOTE_TTL
 from .cache import cache
 from .symbols import to_yahoo
+from . import history_store
 from . import upstox_chart
 from .yahoo_chart import fetch_chart
 
@@ -39,6 +40,60 @@ def _clean(value):
     return value
 
 
+# Daily ranges served from the persistent store (calendar days of
+# history to slice). 5y/max use weekly/monthly intervals and keep the
+# existing provider path.
+_DAILY_RANGE_DAYS = {"1mo": 30, "3mo": 90, "6mo": 180, "1y": 365, "2y": 730}
+
+
+def _daily_frame(symbol: str, range_: str) -> pd.DataFrame | None:
+    """Stored daily bars for `range_` plus today's live bar, or None.
+
+    Completed bars come from disk; a sync (at most once a day) refreshes
+    them from Upstox. Today's bar is appended in memory from the live
+    quote when the market is open or closed for the day, and is never
+    stored as a completed bar. Returns None when the store is empty and
+    the sync fetch fails, so the caller falls back to the provider path.
+    """
+    days = _DAILY_RANGE_DAYS.get(range_, 365)
+    try:
+        if history_store.needs_sync(symbol):
+            fresh = upstox_chart.fetch_candles(symbol, "2y", "1d")
+            if fresh is not None and not fresh.empty:
+                history_store.upsert(symbol, fresh)
+                history_store.mark_synced(symbol)
+        frame = history_store.load(symbol, days)
+    except Exception as exc:
+        log.warning("history store read failed for %s: %s", symbol, exc)
+        return None
+    if frame is None:
+        return None
+    if history_store.appendable_today():
+        live = upstox_chart.fetch_quote(symbol)
+        if (
+            live
+            and live.get("price") is not None
+            and live.get("dayOpen") is not None
+            and live.get("dayHigh") is not None
+            and live.get("dayLow") is not None
+        ):
+            today = history_store.today_ist()
+            bar = pd.DataFrame(
+                [{
+                    "Open": live["dayOpen"],
+                    "High": live["dayHigh"],
+                    "Low": live["dayLow"],
+                    "Close": live["price"],
+                    "Volume": live.get("volume"),
+                }],
+                index=pd.DatetimeIndex(
+                    [pd.Timestamp(today).tz_localize(history_store.IST)]
+                ),
+            )
+            frame = pd.concat([frame, bar]).sort_index()
+    return frame
+
+
 def get_history(symbol: str, range_: str = "1y", interval: str | None = None, fast_fallback: bool = False) -> pd.DataFrame | None:
     """Daily/intraday OHLCV as a DataFrame with Open/High/Low/Close/Volume columns.
 
@@ -54,15 +109,29 @@ def get_history(symbol: str, range_: str = "1y", interval: str | None = None, fa
     if cached_df is not None:
         return cached_df
 
-    # Upstox first when configured; Yahoo fallback covers unmapped
-    # symbols, unsupported ranges, and Upstox outages.
+    # Daily frames for Upstox-mapped symbols come from the persistent
+    # store (completed bars from disk, today's bar live). Only a missing
+    # or stale store touches the provider.
     df = None
-    if upstox_chart.available():
-        df = upstox_chart.fetch_candles(symbol, range_, interval)
+    if interval == "1d" and upstox_chart.available() and upstox_chart.instrument_key(symbol):
+        df = _daily_frame(symbol, range_)
     if df is None:
-        # Positional fast flag: keeps the existing *args-only test
-        # doubles working (they predate the flag).
-        df = fetch_chart(ticker, period, interval, fast_fallback)
+        # Upstox first when configured; Yahoo fallback covers unmapped
+        # symbols, unsupported ranges, and Upstox outages.
+        if upstox_chart.available():
+            df = upstox_chart.fetch_candles(symbol, range_, interval)
+        if df is None:
+            # Positional fast flag: keeps the existing *args-only test
+            # doubles working (they predate the flag).
+            df = fetch_chart(ticker, period, interval, fast_fallback)
+        # A fresh Upstox frame also populates the store, so the next
+        # request (and the next restart) serves from disk.
+        if df is not None and interval == "1d" and df.attrs.get("source") == "upstox":
+            try:
+                history_store.upsert(symbol, df)
+                history_store.mark_synced(symbol)
+            except Exception as exc:
+                log.warning("history store populate failed for %s: %s", symbol, exc)
     if df is None or df.empty:
         return None
     source = df.attrs.get("source", "live")
