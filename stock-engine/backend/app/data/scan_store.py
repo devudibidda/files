@@ -37,6 +37,13 @@ def _conn() -> sqlite3.Connection:
             computed_at TEXT NOT NULL
         )"""
     )
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS docs (
+            doc_key TEXT PRIMARY KEY,
+            doc_json TEXT NOT NULL,
+            computed_at TEXT NOT NULL
+        )"""
+    )
     return conn
 
 
@@ -82,3 +89,32 @@ def load_scan(scan_key: str) -> tuple[list[dict] | None, str | None]:
     if not rows:
         return None, None
     return [json.loads(r[0]) for r in rows], meta[0]
+
+
+def save_doc(doc_key: str, doc: dict) -> str:
+    """Store one computed document (for example the market overview)."""
+    computed_at = _now_iso()
+    conn = _conn()
+    try:
+        conn.execute(
+            "INSERT OR REPLACE INTO docs (doc_key, doc_json, computed_at) VALUES (?, ?, ?)",
+            (doc_key, json.dumps(doc), computed_at),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return computed_at
+
+
+def load_doc(doc_key: str) -> tuple[dict | None, str | None]:
+    """Stored document and its computed_at, or (None, None) when empty."""
+    conn = _conn()
+    try:
+        row = conn.execute(
+            "SELECT doc_json, computed_at FROM docs WHERE doc_key = ?", (doc_key,)
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return None, None
+    return json.loads(row[0]), row[1]

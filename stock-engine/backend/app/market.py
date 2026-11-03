@@ -1,7 +1,8 @@
 """Market overview: indices, movers, breadth."""
 from concurrent.futures import ThreadPoolExecutor
 
-from .data.cache import cached
+from .data import scan_store
+from .data.cache import cache, cached
 from .data.fetcher import get_quote
 from .data.symbols import ALL_SYMBOLS, INDICES
 
@@ -25,7 +26,34 @@ def _fetch_quotes(symbols: list[str], fast_symbols: frozenset[str] = frozenset()
 
 
 def market_overview() -> dict:
-    return cached("market:overview", 300, _market_overview)
+    """Indices, movers, breadth: memory cache, then stored doc, then compute.
+
+    The stored doc is what keeps the dashboard instant after a restart:
+    the old memory-only cache left the first post-restart visitor paying
+    for the full 65-quote fetch behind a blank page skeleton.
+    """
+    hit = cache.get("market:overview")
+    if hit is not None:
+        return hit
+    doc, _ = scan_store.load_doc("market:overview")
+    if doc is not None:
+        cache.set("market:overview", doc, 300)
+        return doc
+
+    def run():
+        result = _market_overview()
+        result["computedAt"] = scan_store.save_doc("market:overview", result)
+        return result
+
+    return cached("market:overview", 300, run)
+
+
+def refresh_overview() -> dict:
+    """Force a fresh overview, bypassing caches, and persist it."""
+    result = _market_overview()
+    result["computedAt"] = scan_store.save_doc("market:overview", result)
+    cache.set("market:overview", result, 300)
+    return result
 
 
 def _market_overview() -> dict:

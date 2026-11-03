@@ -10,9 +10,9 @@ _scheduler: BackgroundScheduler | None = None
 
 
 def _warm_market():
-    from .market import market_overview
+    from .market import refresh_overview
     try:
-        market_overview()
+        refresh_overview()
         log.info("market overview cache warmed")
     except Exception as exc:
         log.warning("market warm failed: %s", exc)

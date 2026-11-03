@@ -122,6 +122,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {data.computedAt && (
+        <p className="text-xs text-slate-500">Market as of {data.computedAt.replace('T', ' ').slice(0, 16)}</p>
+      )}
       <Reveal>
         <IndexStrip indices={data.indices} />
       </Reveal>
