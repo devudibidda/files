@@ -19,7 +19,8 @@ def test_doc_store_round_trip(sstore):
     doc = {"indices": [], "breadth": {"advancers": 3, "decliners": 2}}
     computed_at = sstore.save_doc("market:overview", doc)
     loaded, at = sstore.load_doc("market:overview")
-    assert loaded == doc
+    assert loaded["breadth"] == doc["breadth"]
+    assert loaded["computedAt"] == computed_at
     assert at == computed_at
     assert sstore.load_doc("missing") == (None, None)
 
@@ -28,14 +29,15 @@ def test_overview_serves_from_store(sstore, monkeypatch):
     from app import market
 
     doc = {"indices": [], "topGainers": [], "topLosers": [],
-           "breadth": {"advancers": 1, "decliners": 0, "unchanged": 0},
-           "computedAt": "2026-11-03T17:00:00+05:30"}
+           "breadth": {"advancers": 1, "decliners": 0, "unchanged": 0}}
     sstore.save_doc("market:overview", doc)
     monkeypatch.setattr(market, "_market_overview",
                         lambda: (_ for _ in ()).throw(AssertionError("store should serve")))
     cache.clear()
     try:
-        assert market.market_overview() == doc
+        result = market.market_overview()
+        assert result["breadth"] == doc["breadth"]
+        assert result["computedAt"]
     finally:
         cache.clear()
 

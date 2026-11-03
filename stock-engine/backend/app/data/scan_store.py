@@ -92,13 +92,20 @@ def load_scan(scan_key: str) -> tuple[list[dict] | None, str | None]:
 
 
 def save_doc(doc_key: str, doc: dict) -> str:
-    """Store one computed document (for example the market overview)."""
+    """Store one computed document (for example the market overview).
+
+    The stored copy carries its own computedAt, so a later load can
+    report freshness without a second lookup. Callers assign the
+    returned value to the live dict as well.
+    """
     computed_at = _now_iso()
+    stored = dict(doc)
+    stored["computedAt"] = computed_at
     conn = _conn()
     try:
         conn.execute(
             "INSERT OR REPLACE INTO docs (doc_key, doc_json, computed_at) VALUES (?, ?, ?)",
-            (doc_key, json.dumps(doc), computed_at),
+            (doc_key, json.dumps(stored), computed_at),
         )
         conn.commit()
     finally:
