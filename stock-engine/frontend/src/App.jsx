@@ -1,8 +1,8 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import CallsPage from './pages/CallsPage';
 import Dashboard from './pages/Dashboard';
 import EtfPage from './pages/EtfPage';
-import FinderPage from './pages/FinderPage';
 import MutualFundsPage from './pages/MutualFundsPage';
 import ScreenerPage from './pages/ScreenerPage';
 import StockPage from './pages/StockPage';
@@ -24,7 +24,8 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/stock/:symbol" element={<StockPage />} />
           <Route path="/screener" element={<ScreenerPage />} />
-          <Route path="/start" element={<FinderPage />} />
+          <Route path="/calls" element={<CallsPage />} />
+          <Route path="/start" element={<Navigate to="/" replace />} />
           <Route path="/etfs" element={<EtfPage />} />
           <Route path="/mutual-funds" element={<MutualFundsPage />} />
           <Route path="/watchlist" element={<WatchlistPage />} />

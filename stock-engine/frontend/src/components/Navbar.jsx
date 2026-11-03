@@ -125,9 +125,9 @@ function SearchBox() {
 }
 
 const links = [
-  { to: '/start', label: 'Start here' },
   { to: '/', label: 'Dashboard' },
   { to: '/screener', label: 'Screener' },
+  { to: '/calls', label: 'Calls' },
   { to: '/etfs', label: 'ETFs' },
   { to: '/mutual-funds', label: 'Mutual Funds' },
   { to: '/watchlist', label: 'Watchlist' },

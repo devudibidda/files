@@ -9,6 +9,15 @@ async function get(path) {
   return res.json();
 }
 
+async function post(path) {
+  const res = await fetch(`${BASE}${path}`, { method: 'POST' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `Request failed (${res.status})`);
+  }
+  return res.json();
+}
+
 export const api = {
   health: () => get('/api/health'),
   search: (q) => get(`/api/symbols/search?q=${encodeURIComponent(q)}`),
@@ -25,11 +34,12 @@ export const api = {
     get(`/api/screener?scan=${scan}${type ? `&type=${type}` : ''}`),
   etfs: () => get('/api/etfs'),
   etfLeaders: () => get('/api/etfs/leaders'),
+  refreshEtfLeaders: () => post('/api/etfs/leaders/refresh'),
+  calls: () => get('/api/calls'),
+  refreshScreener: () => post('/api/screener/refresh'),
   mfSearch: (q) => get(`/api/mutual-funds/search?q=${encodeURIComponent(q)}`),
   mfDetail: (code) => get(`/api/mutual-funds/${code}`),
   mfLeaders: (category) => get(`/api/mutual-funds/leaders?category=${encodeURIComponent(category)}`),
-  advisorPortfolio: (horizon, reaction) =>
-    get(`/api/advisor/portfolio?horizon=${encodeURIComponent(horizon)}&reaction=${encodeURIComponent(reaction)}`),
   watchlist: {
     get: (clientId) => get(`/api/watchlist?client_id=${clientId}`),
     add: (clientId, symbol) =>

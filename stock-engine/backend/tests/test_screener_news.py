@@ -7,6 +7,7 @@ section goes through the same scan path (api.screener('strong_buy')), so it
 benefits automatically.
 """
 
+from app.data import scan_store
 from app.data.cache import cache
 from app.news import rss
 from app.signals import analysis
@@ -60,8 +61,9 @@ def test_analyze_without_news_skips_rss(monkeypatch, uptrend):
                                        "scoreAdjustment": 0.0}
 
 
-def test_scan_universe_passes_include_news_false(monkeypatch):
+def test_scan_universe_passes_include_news_false(monkeypatch, tmp_path):
     cache.clear()
+    monkeypatch.setattr(scan_store, "SQLITE_PATH", str(tmp_path / "scans.db"))
     calls = []
 
     def fake_analyze(symbol, include_news=True):

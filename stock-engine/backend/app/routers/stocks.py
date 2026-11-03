@@ -4,7 +4,7 @@ from ..data.fetcher import get_history, get_quote, history_to_candles, is_intrad
 from ..data.symbols import ALL_SYMBOLS, lookup, search
 from ..indicators.engine import compute_all
 from ..news.rss import market_news, stock_news
-from ..screener import scan_universe
+from ..screener import refresh_scan, scan_computed_at, scan_universe
 from ..signals.analysis import analyze
 from ..signals.backtest import backtest
 
@@ -34,9 +34,18 @@ def etf_leaders():
         categories.append({"category": cat, "leaders": items[:3]})
     return {
         "categories": categories,
+        "computedAt": scan_computed_at("etf"),
         "method": "ETFs ranked by TrendWise composite signal score within each "
                   "category. Scores are technical signals, not investment advice.",
     }
+
+
+@router.post("/etfs/leaders/refresh")
+def etf_leaders_refresh():
+    rows, computed_at, was_running = refresh_scan("etf")
+    if was_running:
+        return {"status": "running", "computedAt": computed_at}
+    return {"status": "refreshed", "computedAt": computed_at, "rows": len(rows)}
 
 
 @router.get("/stocks/{symbol}/quote")

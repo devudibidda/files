@@ -1,10 +1,27 @@
+import { useState } from 'react';
 import { api, fmt } from '../api';
 import { ChangePct, ErrorNote, Reveal, SectionTitle, Skeleton, SymbolLink, VerdictBadge } from '../components/ui';
 import { useFetch } from '../hooks';
 
 export default function EtfPage() {
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState(null);
   const { data, error, loading, retry } = useFetch(() => api.screener('all', 'etf'), []);
   const leaders = useFetch(() => api.etfLeaders(), []);
+
+  const refresh = async () => {
+    setRefreshing(true);
+    setRefreshError(null);
+    try {
+      await api.refreshEtfLeaders();
+      retry();
+      leaders.retry();
+    } catch (e) {
+      setRefreshError(e.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   if (loading) return <Skeleton className="h-96" />;
   if (error) return <ErrorNote error={error} retry={retry} />;
@@ -19,6 +36,15 @@ export default function EtfPage() {
         <p className="mt-1 text-sm text-slate-500">
           Curated NSE-listed ETFs - index, gold, sector, factor and international - ranked by composite signal score.
         </p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <span className="text-xs text-slate-500">
+            {leaders.data?.computedAt ? `Signals as of ${leaders.data.computedAt.replace('T', ' ').slice(0, 16)}` : 'Signals load from the latest scan'}
+          </span>
+          <button onClick={refresh} disabled={refreshing} className="btn-pill">
+            {refreshing ? 'Refreshing…' : 'Refresh signals'}
+          </button>
+          {refreshError && <span className="text-xs text-rose-300">{refreshError}</span>}
+        </div>
       </div>
 
       {cats.length > 0 && (

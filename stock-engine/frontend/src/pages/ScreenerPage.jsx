@@ -21,15 +21,39 @@ function ScoreBar({ score }) {
 export default function ScreenerPage() {
   const [scan, setScan] = useState('strong_buy');
   const [type, setType] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState(null);
 
   const scans = useFetch(() => api.scans(), []);
   const { data, error, loading, retry } = useFetch(() => api.screener(scan, type), [scan, type]);
+
+  const refresh = async () => {
+    setRefreshing(true);
+    setRefreshError(null);
+    try {
+      await api.refreshScreener();
+      retry();
+    } catch (e) {
+      setRefreshError(e.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
       <div>
         <h1 className="text-xl font-extrabold tracking-tight text-white">Screener</h1>
         <p className="mt-1 text-sm text-slate-500">Signal scans across the tracked NSE universe, refreshed every few minutes.</p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <span className="text-xs text-slate-500">
+            {data?.computedAt ? `Signals as of ${data.computedAt.replace('T', ' ').slice(0, 16)}` : 'Signals load from the latest scan'}
+          </span>
+          <button onClick={refresh} disabled={refreshing} className="btn-pill">
+            {refreshing ? 'Refreshing…' : 'Refresh signals'}
+          </button>
+          {refreshError && <span className="text-xs text-rose-300">{refreshError}</span>}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
@@ -60,7 +84,7 @@ export default function ScreenerPage() {
       {loading ? (
         <div className="space-y-3">
           <p className="py-2 text-center text-sm text-slate-400">
-            Scanning 145 symbols, this can take a moment on a first load…
+            Loading signals…
           </p>
           <Skeleton className="h-96" />
         </div>

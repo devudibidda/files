@@ -19,9 +19,13 @@ def _warm_market():
 
 
 def _warm_screener():
-    from .screener import scan_universe
+    from .screener import refresh_scan
     try:
-        scan_universe()
+        # Both scan keys: the "all" key feeds Screener and Calls, the
+        # "etf" key feeds ETF leaders. Refresh (not just cache-read)
+        # so stored rows stay fresh even when nobody visits.
+        refresh_scan(None)
+        refresh_scan("etf")
         log.info("screener cache warmed")
     except Exception as exc:
         log.warning("screener warm failed: %s", exc)
@@ -41,7 +45,7 @@ def start():
         return
     _scheduler = BackgroundScheduler(daemon=True)
     _scheduler.add_job(_warm_market, "interval", minutes=5, next_run_time=None)
-    _scheduler.add_job(_warm_screener, "interval", minutes=15)
+    _scheduler.add_job(_warm_screener, "interval", minutes=5)
     _scheduler.add_job(_warm_news, "interval", minutes=10)
     _scheduler.start()
     log.info("background scheduler started")
