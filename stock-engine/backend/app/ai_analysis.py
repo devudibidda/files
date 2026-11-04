@@ -1,19 +1,26 @@
 """Local AI analysis: plain-language explanation of a technical verdict.
 
-Runs entirely on the host machine through Ollama (localhost:11434, no
-external API). Generation is slow on CPU (about 1-3 minutes for an 8B
-model on 2 cores), so results are cached one per symbol per trading day
-(Asia/Kolkata date) in the same SQLite file as the rest of the app, and
-generation runs in a background thread with single-flight per symbol.
+Two providers, chosen by AI_PROVIDER:
+- "local" (default): Ollama on localhost:11434, no external API. Slow
+  on CPU (about 1-3 minutes for an 8B model on 2 cores).
+- "nim": NVIDIA NIM hosted endpoint (OpenAI-compatible chat API),
+  which answers in seconds. When NIM fails, generation falls back to
+  the local model instead of failing outright.
 
-On hosts without Ollama (for example Render) generation fails fast with
-a clear error and the endpoint reports the feature as unavailable.
+Results are cached one per symbol per trading day (Asia/Kolkata date)
+in the same SQLite file as the rest of the app, and generation runs in
+a background thread with single-flight per symbol.
+
+On hosts with neither Ollama nor a NIM key (for example Render)
+generation fails fast with a clear error and the endpoint reports the
+feature as unavailable.
 """
 import json
 import logging
 import os
 import sqlite3
 import threading
+import urllib.error
 import urllib.request
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -26,6 +33,10 @@ log = logging.getLogger(__name__)
 
 MODEL = os.getenv("AI_MODEL", "qwen3:8b")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
+AI_PROVIDER = os.getenv("AI_PROVIDER", "local").lower()
+NIM_API_KEY = os.getenv("NVIDIA_API_KEY", "") or os.getenv("NIM_API_KEY", "")
+NIM_MODEL = os.getenv("NIM_MODEL", "deepseek-ai/deepseek-v4.1-flash")
+NIM_BASE_URL = os.getenv("NIM_BASE_URL", "https://integrate.api.nvidia.com/v1")
 NUM_CTX = 8192
 NUM_PREDICT = 600
 GENERATE_TIMEOUT = 600
@@ -146,6 +157,64 @@ def _ollama_generate(prompt: str) -> str:
     return text
 
 
+def _nim_generate(prompt: str) -> str:
+    """One OpenAI-compatible chat call to the NVIDIA NIM endpoint."""
+    if not NIM_API_KEY:
+        raise RuntimeError("NIM API key is not configured")
+    body = json.dumps(
+        {
+            "model": NIM_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.3,
+            "max_tokens": NUM_PREDICT,
+        }
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        NIM_BASE_URL.rstrip("/") + "/chat/completions",
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + NIM_API_KEY,
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(f"NIM request failed (HTTP {exc.code})") from exc
+    except OSError as exc:
+        raise RuntimeError("NIM endpoint unreachable") from exc
+    choices = payload.get("choices") or []
+    text = ""
+    if choices:
+        text = ((choices[0].get("message") or {}).get("content") or "").strip()
+    if not text:
+        raise RuntimeError("NIM returned an empty response")
+    return text
+
+
+def _configured_model() -> str:
+    return NIM_MODEL if AI_PROVIDER == "nim" else MODEL
+
+
+def _generate_with_fallback(prompt: str) -> tuple[str, str]:
+    """Try the configured provider, falling back to local on failure.
+    Returns (text, model actually used)."""
+    providers = [("local", _ollama_generate)]
+    if AI_PROVIDER == "nim":
+        providers = [("nim", _nim_generate), ("local", _ollama_generate)]
+    last_exc: Exception | None = None
+    for name, fn in providers:
+        try:
+            text = fn(prompt)
+            return text, (NIM_MODEL if name == "nim" else MODEL)
+        except Exception as exc:
+            log.warning("AI provider %s failed: %s", name, exc)
+            last_exc = exc
+    raise RuntimeError(str(last_exc) if last_exc else "AI generation failed")
+
+
 def load_cached(symbol: str) -> dict | None:
     symbol = symbol.upper()
     day = _today_ist()
@@ -168,7 +237,7 @@ def load_cached(symbol: str) -> dict | None:
     }
 
 
-def _save(symbol: str, text: str, price, verdict) -> None:
+def _save(symbol: str, text: str, price, verdict, model: str = MODEL) -> None:
     symbol = symbol.upper()
     with _lock, _conn() as conn:
         conn.execute(
@@ -178,7 +247,7 @@ def _save(symbol: str, text: str, price, verdict) -> None:
             (
                 symbol,
                 _today_ist(),
-                MODEL,
+                model,
                 text,
                 price,
                 verdict,
@@ -194,8 +263,8 @@ def _generate_and_store(symbol: str) -> None:
         report = analyze(symbol)
         if not quote or not report:
             raise RuntimeError(f"Not enough data to analyze '{symbol}'")
-        text = _ollama_generate(build_prompt(symbol, quote, report))
-        _save(symbol, text, quote.get("price"), report.get("verdict"))
+        text, used_model = _generate_with_fallback(build_prompt(symbol, quote, report))
+        _save(symbol, text, quote.get("price"), report.get("verdict"), model=used_model)
         with _lock:
             _errors.pop(symbol, None)
     except Exception as exc:
@@ -217,8 +286,8 @@ def status(symbol: str) -> dict:
         running = symbol in _running
         error = _errors.get(symbol)
     if running:
-        return {"symbol": symbol, "status": "generating", "model": MODEL}
-    result: dict = {"symbol": symbol, "status": "missing", "model": MODEL}
+        return {"symbol": symbol, "status": "generating", "model": _configured_model()}
+    result: dict = {"symbol": symbol, "status": "missing", "model": _configured_model()}
     if error:
         result["lastError"] = error
     return result
@@ -233,9 +302,9 @@ def request_generation(symbol: str) -> dict:
         return cached
     with _lock:
         if symbol in _running:
-            return {"symbol": symbol, "status": "generating", "model": MODEL}
+            return {"symbol": symbol, "status": "generating", "model": _configured_model()}
         _running.add(symbol)
         _errors.pop(symbol, None)
     thread = threading.Thread(target=_generate_and_store, args=(symbol,), daemon=True)
     thread.start()
-    return {"symbol": symbol, "status": "generating", "model": MODEL}
+    return {"symbol": symbol, "status": "generating", "model": _configured_model()}
