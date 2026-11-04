@@ -26,6 +26,8 @@ export const api = {
   analysis: (symbol, accountSize = 100000, riskPct = 1) =>
     get(`/api/stocks/${symbol}/analysis?account_size=${accountSize}&risk_pct=${riskPct}`),
   backtest: (symbol) => get(`/api/stocks/${symbol}/backtest`),
+  aiAnalysis: (symbol) => get(`/api/stocks/${symbol}/ai-analysis`),
+  refreshAiAnalysis: (symbol) => post(`/api/stocks/${symbol}/ai-analysis/refresh`),
   stockNews: (symbol) => get(`/api/stocks/${symbol}/news`),
   marketNews: () => get('/api/news/market'),
   overview: () => get('/api/market/overview'),

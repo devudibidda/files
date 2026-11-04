@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api, clientId, fmt } from '../api';
+import AiAnalysisCard from '../components/AiAnalysisCard';
 import NewsList from '../components/NewsList';
 import PriceChart from '../components/PriceChart';
 import VerdictGauge from '../components/VerdictGauge';
@@ -435,6 +436,10 @@ export default function StockPage() {
 
       <Reveal>
         <BacktestCard symbol={symbol} />
+      </Reveal>
+
+      <Reveal>
+        <AiAnalysisCard symbol={symbol} />
       </Reveal>
     </div>
   );

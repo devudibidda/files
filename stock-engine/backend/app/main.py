@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import scheduler
 from .config import CORS_ORIGINS, DISCLAIMER, UPSTOX_ANALYTICS_TOKEN
-from .routers import advisor, market, mutual_funds, stocks, watchlist
+from .routers import advisor, ai, market, mutual_funds, stocks, watchlist
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
@@ -37,6 +37,7 @@ app.add_middleware(
 )
 
 app.include_router(stocks.router)
+app.include_router(ai.router)
 app.include_router(advisor.router)
 app.include_router(market.router)
 app.include_router(mutual_funds.router)
