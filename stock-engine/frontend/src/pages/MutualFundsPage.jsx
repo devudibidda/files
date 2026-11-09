@@ -125,7 +125,7 @@ export default function MutualFundsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-xl font-extrabold tracking-tight text-white">Mutual funds</h1>
+        <h1 className="font-display text-2xl text-slate-100">Mutual funds</h1>
         <p className="mt-1 text-sm text-slate-500">
           Funds are analyzed from NAV history, trailing returns, volatility, drawdown and SIP illustration.
           Unlike stocks and ETFs, funds get no intraday indicators: NAV updates once a day, so candle
@@ -141,7 +141,7 @@ export default function MutualFundsPage() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && runSearch()}
             placeholder="Search by fund name, e.g. Parag Parikh Flexi Cap"
-            className="w-full rounded-xl border border-white/10 bg-ink-800 px-3 py-2 text-sm text-white outline-none focus:border-brand-500"
+            className="w-full rounded-xl border border-ink-600 bg-white px-3 py-2 text-sm text-slate-100 outline-none focus:border-brand-500"
           />
           <button onClick={runSearch} className="btn-pill btn-pill-active shrink-0">Search</button>
         </div>
@@ -153,7 +153,7 @@ export default function MutualFundsPage() {
               <button
                 key={r.schemeCode}
                 onClick={() => setSelected(r.schemeCode)}
-                className="block w-full py-2 text-left text-sm text-slate-300 hover:text-white"
+                className="block w-full py-2 text-left text-sm text-slate-300 hover:text-slate-100"
               >
                 {r.schemeName} <span className="num text-xs text-slate-500">({r.schemeCode})</span>
               </button>
@@ -197,7 +197,7 @@ export default function MutualFundsPage() {
                   {(leaders.data?.leaders || []).map((r) => (
                     <tr key={r.schemeCode} className="hover:bg-ink-700/40 transition-colors">
                       <td className="table-cell">
-                        <button onClick={() => setSelected(r.schemeCode)} className="text-left font-semibold text-slate-200 hover:text-white">
+                        <button onClick={() => setSelected(r.schemeCode)} className="text-left font-semibold text-slate-200 hover:text-slate-100">
                           {r.schemeName}
                         </button>
                         <div className="text-xs text-slate-500">{r.fundHouse}</div>

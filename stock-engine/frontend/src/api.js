@@ -101,8 +101,8 @@ export const fmt = {
 export const verdictColor = (verdict) =>
   ({
     'Strong Buy': 'text-bull bg-bull/10 ring-1 ring-bull/30',
-    Buy: 'text-emerald-300 bg-emerald-500/10 ring-1 ring-emerald-400/25',
-    Hold: 'text-amber-300 bg-amber-400/10 ring-1 ring-amber-400/25',
-    Sell: 'text-rose-300 bg-rose-500/10 ring-1 ring-rose-400/25',
+    Buy: 'text-emerald-700 bg-emerald-500/10 ring-1 ring-emerald-500/25',
+    Hold: 'text-amber-700 bg-amber-400/10 ring-1 ring-amber-500/25',
+    Sell: 'text-rose-700 bg-rose-500/10 ring-1 ring-rose-500/25',
     'Strong Sell': 'text-bear bg-bear/10 ring-1 ring-bear/30',
   })[verdict] || 'text-slate-300 bg-ink-700';

@@ -31,12 +31,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
-      <div className="aurora" aria-hidden>
-        <div className="aurora-grid" />
-        <div className="aurora-orb aurora-orb-1" />
-        <div className="aurora-orb aurora-orb-2" />
-        <div className="aurora-orb aurora-orb-3" />
-      </div>
       <div className="relative z-10">
         <Navbar />
         <Sidebar open={sidebarOpen} onToggle={toggleSidebar} />
@@ -57,7 +51,7 @@ export default function App() {
               <Route path="/watchlist" element={<WatchlistPage />} />
             </Routes>
           </main>
-          <footer className="border-t border-white/[0.06] py-6">
+          <footer className="border-t border-ink-700 py-6">
             <p className="mx-auto max-w-7xl px-6 text-xs leading-relaxed text-slate-500">
               TrendWise is an educational analysis tool, not SEBI-registered investment advice. Technical signals are
               probabilistic, not guarantees, markets carry risk. Always do your own research before trading.

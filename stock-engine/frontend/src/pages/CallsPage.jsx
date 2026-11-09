@@ -14,7 +14,7 @@ function CallCard({ call, side }) {
         <VerdictBadge verdict={call.verdict} />
       </div>
       <div className="mt-3 flex items-baseline gap-3">
-        <span className="num text-lg font-bold text-white">{fmt.price(call.price)}</span>
+        <span className="num text-lg font-bold text-slate-100">{fmt.price(call.price)}</span>
         <span className={`num text-sm font-bold ${call.score >= 0 ? 'text-bull' : 'text-bear'}`}>
           {call.score > 0 ? `+${call.score}` : call.score}
         </span>
@@ -85,7 +85,7 @@ export default function CallsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-extrabold tracking-tight text-white">Signal calls</h1>
+        <h1 className="font-display text-2xl text-slate-100">Signal calls</h1>
         <p className="mt-1 text-sm text-slate-500">
           A short, curated list from the latest scan. Only setups clearing the quality bar appear:
           a Buy or Sell verdict with confidence of 60% or higher.

@@ -89,8 +89,8 @@ export default function SearchBox({ variant = 'dark', inputRef: externalRef, onN
         placeholder="Search stocks & ETFs"
         className={`w-full rounded-xl py-2 pl-9 text-sm outline-none transition ${
           cream
-            ? 'border border-[rgba(120,90,40,0.14)] bg-[rgba(120,90,40,0.07)] pr-12 text-[#2b2118] placeholder-[#a39a8c] focus:border-[#e8622c]/60 focus:ring-2 focus:ring-[#e8622c]/25'
-            : 'border border-white/10 bg-white/[0.06] pr-3 text-slate-200 placeholder-slate-500 backdrop-blur-xl focus:border-brand-400/60 focus:ring-2 focus:ring-brand-500/25'
+            ? 'border border-ink-600 bg-[rgba(120,90,40,0.07)] pr-12 text-[#2b2118] placeholder-[#a39a8c] focus:border-[#d97757]/60 focus:ring-2 focus:ring-[#d97757]/25'
+            : 'border border-ink-600 bg-white pr-3 text-slate-100 placeholder-slate-400 focus:border-brand-400/60 focus:ring-2 focus:ring-brand-500/25'
         }`}
       />
       {cream && (
@@ -103,7 +103,7 @@ export default function SearchBox({ variant = 'dark', inputRef: externalRef, onN
           className={`absolute z-50 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border shadow-xl backdrop-blur-xl ${
             cream
               ? 'border-white/70 bg-[#fffdf8]/95 shadow-[0_16px_40px_-16px_rgba(43,33,24,0.45)]'
-              : 'border-white/10 bg-ink-900/90 shadow-card'
+              : 'border-ink-600 bg-white shadow-card'
           }`}
         >
           {results.map((r, i) => (

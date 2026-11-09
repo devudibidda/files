@@ -29,7 +29,7 @@ export function SentimentChip({ label }) {
 export function SectionTitle({ children, right }) {
   return (
     <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">{children}</h2>
+      <h2 className="font-display text-2xl text-slate-100">{children}</h2>
       {right}
     </div>
   );
@@ -38,7 +38,7 @@ export function SectionTitle({ children, right }) {
 export function SymbolLink({ symbol, name, className = '' }) {
   return (
     <Link to={`/stock/${symbol}`} className={`group ${className}`}>
-      <span className="font-semibold text-slate-100 group-hover:text-brand-400 transition-colors">{symbol}</span>
+      <span className="font-semibold text-slate-100 group-hover:text-clay transition-colors">{symbol}</span>
       {name && <span className="ml-2 hidden text-xs text-slate-500 sm:inline">{name}</span>}
     </Link>
   );
@@ -53,7 +53,7 @@ export function ErrorNote({ error, retry }) {
     <div className="card-pad text-center">
       <p className="text-sm text-slate-400">{String(error?.message || error || 'Something went wrong.')}</p>
       {retry && (
-        <button onClick={retry} className="glass-btn mt-3">
+        <button onClick={retry} className="btn-dark mt-3">
           Retry
         </button>
       )}
@@ -96,21 +96,53 @@ export function Reveal({ children, delay = 0, className = '' }) {
   );
 }
 
-/* 3D tilt card: tilts toward the cursor with a moving light glare.
-   Wrap a .card element with it; the card itself keeps its own styling. */
-export function TiltCard({ children, max = 7, className = '' }) {
+/* Animated number (DesignSpells recipe for KPI cards): tweens from the
+   previous value to the new one over ~600ms with cubic ease-out, so live
+   index values roll instead of jumping. Honors reduced-motion. */
+export function AnimatedNumber({ value, format = (v) => fmt.num(v), duration = 600, className = '' }) {
+  const [display, setDisplay] = useState(value);
+  const prevRef = useRef(value);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDisplay(value);
+      prevRef.current = value;
+      return;
+    }
+    const from = prevRef.current ?? value;
+    prevRef.current = value;
+    if (from === value || from == null || value == null) {
+      setDisplay(value);
+      return;
+    }
+    const start = performance.now();
+    let raf;
+    const tick = (t) => {
+      const p = Math.min(1, (t - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(from + (value - from) * eased);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value, duration]);
+  return <span className={`num ${className}`}>{format(display)}</span>;
+}
+
+/* Restrained 3D tilt: cards follow the cursor by at most 4 degrees, with
+   the card's own soft shadow doing the depth. No glare, no deep shadow,
+   professional and subtle. Honors reduced-motion. Wrap a .card with it. */
+export function TiltCard({ children, max = 4, className = '' }) {
   const rootRef = useRef(null);
   const innerRef = useRef(null);
   const onMove = (e) => {
     const root = rootRef.current;
     const inner = innerRef.current;
     if (!root || !inner) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const r = root.getBoundingClientRect();
     const x = (e.clientX - r.left) / r.width;
     const y = (e.clientY - r.top) / r.height;
-    inner.style.transform = `rotateX(${((0.5 - y) * 2 * max).toFixed(2)}deg) rotateY(${((x - 0.5) * 2 * max).toFixed(2)}deg) translateZ(6px)`;
-    inner.style.setProperty('--glare-x', `${x * 100}%`);
-    inner.style.setProperty('--glare-y', `${y * 100}%`);
+    inner.style.transform = `rotateX(${((0.5 - y) * 2 * max).toFixed(2)}deg) rotateY(${((x - 0.5) * 2 * max).toFixed(2)}deg) translateZ(4px)`;
   };
   const onLeave = () => {
     if (innerRef.current) innerRef.current.style.transform = '';
@@ -119,7 +151,6 @@ export function TiltCard({ children, max = 7, className = '' }) {
     <div ref={rootRef} onMouseMove={onMove} onMouseLeave={onLeave} className={`tilt ${className}`}>
       <div ref={innerRef} className="tilt-inner relative h-full">
         {children}
-        <div className="tilt-glare" aria-hidden />
       </div>
     </div>
   );

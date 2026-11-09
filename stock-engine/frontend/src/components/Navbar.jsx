@@ -5,7 +5,7 @@ function Logo() {
   return (
     <NavLink to="/" className="flex items-center gap-2.5 shrink-0">
       <svg viewBox="0 0 32 32" className="h-8 w-8">
-        <rect width="32" height="32" rx="8" className="fill-ink-700" />
+        <rect width="32" height="32" rx="8" fill="#121212" />
         <path
           d="M6 22 L13 14 L18 18 L26 8"
           className="stroke-bull"
@@ -15,8 +15,8 @@ function Logo() {
           strokeLinejoin="round"
         />
       </svg>
-      <span className="font-display text-lg font-extrabold tracking-tight text-white">
-        Trend<span className="text-gradient">Wise</span>
+      <span className="font-display text-lg font-semibold tracking-tight text-slate-100">
+        Trend<span className="text-clay">Wise</span>
       </span>
     </NavLink>
   );
@@ -37,7 +37,7 @@ const links = [
  */
 export default function Navbar() {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-ink-950/60 backdrop-blur-xl shadow-[0_8px_32px_-16px_rgba(0,0,0,0.8)] md:hidden">
+    <header className="sticky top-0 z-40 border-b border-ink-700 bg-paper/80 backdrop-blur-xl shadow-[0_8px_24px_-16px_rgba(18,18,18,0.15)] md:hidden">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3 sm:px-6">
         <Logo />
         <div className="ml-auto flex-1 md:max-w-md">

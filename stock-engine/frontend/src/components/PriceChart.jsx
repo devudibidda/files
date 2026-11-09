@@ -9,29 +9,29 @@ import { useEffect, useRef, useState } from 'react';
 const CHART_OPTS = {
   layout: {
     background: { color: 'transparent' },
-    textColor: '#94A3B8',
+    textColor: '#87867f',
     fontFamily: 'Inter, system-ui, sans-serif',
-    panes: { separatorColor: '#1E2A44', separatorHoverColor: '#2C3B5C' },
+    panes: { separatorColor: '#e3dacc', separatorHoverColor: '#cccbc8' },
   },
   grid: {
-    vertLines: { color: 'rgba(30, 42, 68, 0.5)' },
-    horzLines: { color: 'rgba(30, 42, 68, 0.5)' },
+    vertLines: { color: 'rgba(227, 218, 204, 0.6)' },
+    horzLines: { color: 'rgba(227, 218, 204, 0.6)' },
   },
   crosshair: {
-    vertLine: { color: '#475569', labelBackgroundColor: '#1E2A44' },
-    horzLine: { color: '#475569', labelBackgroundColor: '#1E2A44' },
+    vertLine: { color: '#87867f', labelBackgroundColor: '#121212' },
+    horzLine: { color: '#87867f', labelBackgroundColor: '#121212' },
   },
-  rightPriceScale: { borderColor: '#1E2A44' },
-  timeScale: { borderColor: '#1E2A44', rightOffset: 4 },
+  rightPriceScale: { borderColor: '#e3dacc' },
+  timeScale: { borderColor: '#e3dacc', rightOffset: 4 },
   autoSize: true,
 };
 
 const OVERLAY_DEFS = [
-  { key: 'ema20', label: 'EMA 20', color: '#38BDF8' },
-  { key: 'ema50', label: 'EMA 50', color: '#A78BFA' },
-  { key: 'ema200', label: 'EMA 200', color: '#F59E0B' },
-  { key: 'bb', label: 'Bollinger', color: '#64748B' },
-  { key: 'supertrend', label: 'Supertrend', color: '#10B981' },
+  { key: 'ema20', label: 'EMA 20', color: '#d97757' },
+  { key: 'ema50', label: 'EMA 50', color: '#3d3d3a' },
+  { key: 'ema200', label: 'EMA 200', color: '#b0aea5' },
+  { key: 'bb', label: 'Bollinger', color: '#87867f' },
+  { key: 'supertrend', label: 'Supertrend', color: '#02a745' },
 ];
 
 export default function PriceChart({ candles, overlays, height = 560 }) {
@@ -44,11 +44,11 @@ export default function PriceChart({ candles, overlays, height = 560 }) {
     const chart = createChart(containerRef.current, CHART_OPTS);
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#10B981',
-      downColor: '#F43F5E',
+      upColor: '#02a745',
+      downColor: '#a10214',
       borderVisible: false,
-      wickUpColor: '#10B981',
-      wickDownColor: '#F43F5E',
+      wickUpColor: '#02a745',
+      wickDownColor: '#a10214',
     });
     candleSeries.setData(candles.map(({ time, open, high, low, close }) => ({ time, open, high, low, close })));
 
@@ -66,39 +66,39 @@ export default function PriceChart({ candles, overlays, height = 560 }) {
       candles.map((c) => ({
         time: c.time,
         value: c.volume,
-        color: c.close >= c.open ? 'rgba(16, 185, 129, 0.35)' : 'rgba(244, 63, 94, 0.35)',
+        color: c.close >= c.open ? 'rgba(2, 167, 69, 0.35)' : 'rgba(161, 2, 20, 0.35)',
       })),
     );
 
     const lineOpts = { lineWidth: 1.6, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false };
     if (overlays) {
-      if (enabled.ema20) chart.addSeries(LineSeries, { ...lineOpts, color: '#38BDF8' }).setData(overlays.ema20);
-      if (enabled.ema50) chart.addSeries(LineSeries, { ...lineOpts, color: '#A78BFA' }).setData(overlays.ema50);
-      if (enabled.ema200) chart.addSeries(LineSeries, { ...lineOpts, color: '#F59E0B' }).setData(overlays.ema200);
+      if (enabled.ema20) chart.addSeries(LineSeries, { ...lineOpts, color: '#d97757' }).setData(overlays.ema20);
+      if (enabled.ema50) chart.addSeries(LineSeries, { ...lineOpts, color: '#3d3d3a' }).setData(overlays.ema50);
+      if (enabled.ema200) chart.addSeries(LineSeries, { ...lineOpts, color: '#b0aea5' }).setData(overlays.ema200);
       if (enabled.bb) {
-        chart.addSeries(LineSeries, { ...lineOpts, color: 'rgba(100,116,139,0.8)', lineStyle: 2 }).setData(overlays.bbUpper);
-        chart.addSeries(LineSeries, { ...lineOpts, color: 'rgba(100,116,139,0.8)', lineStyle: 2 }).setData(overlays.bbLower);
+        chart.addSeries(LineSeries, { ...lineOpts, color: 'rgba(135,134,127,0.8)', lineStyle: 2 }).setData(overlays.bbUpper);
+        chart.addSeries(LineSeries, { ...lineOpts, color: 'rgba(135,134,127,0.8)', lineStyle: 2 }).setData(overlays.bbLower);
       }
       if (enabled.supertrend) {
-        chart.addSeries(LineSeries, { ...lineOpts, color: '#10B981', lineWidth: 2 }).setData(overlays.supertrend);
+        chart.addSeries(LineSeries, { ...lineOpts, color: '#02a745', lineWidth: 2 }).setData(overlays.supertrend);
       }
 
       // RSI pane
-      const rsiSeries = chart.addSeries(LineSeries, { ...lineOpts, color: '#38BDF8', lastValueVisible: true }, 1);
+      const rsiSeries = chart.addSeries(LineSeries, { ...lineOpts, color: '#d97757', lastValueVisible: true }, 1);
       rsiSeries.setData(overlays.rsi);
-      rsiSeries.createPriceLine({ price: 70, color: 'rgba(244,63,94,0.5)', lineStyle: 2, lineWidth: 1, axisLabelVisible: false });
-      rsiSeries.createPriceLine({ price: 30, color: 'rgba(16,185,129,0.5)', lineStyle: 2, lineWidth: 1, axisLabelVisible: false });
+      rsiSeries.createPriceLine({ price: 70, color: 'rgba(161,2,20,0.5)', lineStyle: 2, lineWidth: 1, axisLabelVisible: false });
+      rsiSeries.createPriceLine({ price: 30, color: 'rgba(2,167,69,0.5)', lineStyle: 2, lineWidth: 1, axisLabelVisible: false });
 
       // MACD pane
       const macdHist = chart.addSeries(HistogramSeries, { lastValueVisible: false, priceLineVisible: false }, 2);
       macdHist.setData(
         overlays.macdHist.map((p) => ({
           ...p,
-          color: p.value >= 0 ? 'rgba(16,185,129,0.55)' : 'rgba(244,63,94,0.55)',
+          color: p.value >= 0 ? 'rgba(2,167,69,0.55)' : 'rgba(161,2,20,0.55)',
         })),
       );
-      chart.addSeries(LineSeries, { ...lineOpts, color: '#38BDF8' }, 2).setData(overlays.macd);
-      chart.addSeries(LineSeries, { ...lineOpts, color: '#F59E0B' }, 2).setData(overlays.macdSignal);
+      chart.addSeries(LineSeries, { ...lineOpts, color: '#3d3d3a' }, 2).setData(overlays.macd);
+      chart.addSeries(LineSeries, { ...lineOpts, color: '#c6613f' }, 2).setData(overlays.macdSignal);
 
       const panes = chart.panes();
       if (panes[1]) panes[1].setHeight(95);
@@ -118,7 +118,7 @@ export default function PriceChart({ candles, overlays, height = 560 }) {
               key={o.key}
               onClick={() => setEnabled((e) => ({ ...e, [o.key]: !e[o.key] }))}
               className={`chip transition-colors ${
-                enabled[o.key] ? 'bg-ink-600 text-white ring-1 ring-ink-500' : 'bg-ink-800 text-slate-500 hover:text-slate-300'
+                enabled[o.key] ? 'bg-slate-100 text-white ring-1 ring-slate-100' : 'bg-ink-800 text-slate-500 hover:text-slate-300'
               }`}
             >
               <span className="h-1.5 w-1.5 rounded-full" style={{ background: o.color }} />

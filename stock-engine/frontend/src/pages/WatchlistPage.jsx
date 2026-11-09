@@ -57,7 +57,7 @@ export default function WatchlistPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-xl font-extrabold tracking-tight text-white">Watchlist</h1>
+        <h1 className="font-display text-2xl text-slate-100">Watchlist</h1>
         <p className="mt-1 text-sm text-slate-500">
           Star any stock from its analysis page to track it here with a live verdict.
         </p>

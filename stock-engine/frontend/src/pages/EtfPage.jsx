@@ -32,7 +32,7 @@ export default function EtfPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-xl font-extrabold tracking-tight text-white">ETF hub</h1>
+        <h1 className="font-display text-2xl text-slate-100">ETF hub</h1>
         <p className="mt-1 text-sm text-slate-500">
           Curated NSE-listed ETFs - index, gold, sector, factor and international - ranked by composite signal score.
         </p>

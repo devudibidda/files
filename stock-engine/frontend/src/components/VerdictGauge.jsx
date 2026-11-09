@@ -30,13 +30,13 @@ export default function VerdictGauge({ score = 0, verdict, confidence }) {
         {arc(0.41, 0.59, '#FBBF24')}
         {arc(0.61, 0.79, '#34D399')}
         {arc(0.81, 1.0, '#10B981')}
-        <line x1={cx} y1={cy} x2={needleX} y2={needleY} stroke="#E2E8F0" strokeWidth="3" strokeLinecap="round" />
-        <circle cx={cx} cy={cy} r="6" fill="#E2E8F0" />
-        <text x="4" y="108" fontSize="9" fill="#64748B">STRONG SELL</text>
-        <text x="196" y="108" fontSize="9" fill="#64748B" textAnchor="end">STRONG BUY</text>
+        <line x1={cx} y1={cy} x2={needleX} y2={needleY} stroke="#121212" strokeWidth="3" strokeLinecap="round" />
+        <circle cx={cx} cy={cy} r="6" fill="#121212" />
+        <text x="4" y="108" fontSize="9" fill="#87867f">STRONG SELL</text>
+        <text x="196" y="108" fontSize="9" fill="#87867f" textAnchor="end">STRONG BUY</text>
       </svg>
       <div className="-mt-2 text-center">
-        <div className="num text-3xl font-extrabold text-white">{score > 0 ? `+${score}` : score}</div>
+        <div className="num text-3xl font-extrabold text-slate-100">{score > 0 ? `+${score}` : score}</div>
         <div className="mt-1.5">
           <VerdictBadge verdict={verdict} className="text-sm px-3 py-1" />
         </div>

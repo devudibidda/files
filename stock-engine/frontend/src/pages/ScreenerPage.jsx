@@ -43,7 +43,7 @@ export default function ScreenerPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-extrabold tracking-tight text-white">Screener</h1>
+        <h1 className="font-display text-2xl text-slate-100">Screener</h1>
         <p className="mt-1 text-sm text-slate-500">Signal scans across the tracked NSE universe, refreshed every few minutes.</p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <span className="text-xs text-slate-500">

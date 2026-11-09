@@ -15,7 +15,7 @@ function Header({ quote, analysis, onWatch, watched }) {
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">{quote.symbol}</h1>
+          <h1 className="font-display text-2xl text-slate-100">{quote.symbol}</h1>
           <VerdictBadge verdict={analysis?.verdict} />
           <button
             onClick={onWatch}
@@ -30,7 +30,7 @@ function Header({ quote, analysis, onWatch, watched }) {
         </p>
       </div>
       <div className="text-right">
-        <div className="num text-3xl font-extrabold text-white">{fmt.price(quote.price)}</div>
+        <div className="num text-3xl font-extrabold text-slate-100">{fmt.price(quote.price)}</div>
         <div className="mt-0.5 flex items-center justify-end gap-2 text-sm">
           <ChangePct value={quote.changePct} />
           <span className="num text-slate-500">({quote.change > 0 ? '+' : ''}{quote.change})</span>
@@ -65,14 +65,14 @@ function TradePlanCard({ plan, verdict, accountSize, riskPct, onParams }) {
     if (a > 0 && r > 0 && r <= 100) onParams(a, r);
   };
   const inputCls =
-    'mt-1 w-full rounded-lg border border-white/10 bg-ink-800 px-2 py-1.5 text-sm text-white outline-none focus:border-brand-500';
+    'mt-1 w-full rounded-lg border border-ink-600 bg-white px-2 py-1.5 text-sm text-slate-100 outline-none focus:border-brand-500';
   const sizing = plan.positionSizing;
   const showSizing = plan.action === 'BUY' || plan.action === 'BUY_ON_DIP';
 
   return (
     <div className="card-pad">
       <SectionTitle right={<VerdictBadge verdict={verdict} />}>Trade plan</SectionTitle>
-      <div className="mb-3 rounded-xl border border-white/10 bg-gradient-to-r from-brand-500/25 via-white/[0.05] to-bull/20 px-3 py-2 text-center text-sm font-bold tracking-wide text-white backdrop-blur">
+      <div className="mb-3 rounded-xl border border-ink-600 bg-manilla px-3 py-2 text-center text-sm font-semibold tracking-wide text-slate-100">
         {actionLabel}
       </div>
       <div className="divide-y divide-ink-700">
@@ -391,7 +391,7 @@ export default function StockPage() {
               key={id}
               onClick={() => setTab(id)}
               className={`px-4 py-2.5 text-sm font-semibold transition-colors ${
-                tab === id ? 'border-b-2 border-brand-500 text-white' : 'text-slate-500 hover:text-slate-300'
+                tab === id ? 'border-b-2 border-brand-500 text-slate-100' : 'text-slate-500 hover:text-slate-300'
               }`}
             >
               {label}
