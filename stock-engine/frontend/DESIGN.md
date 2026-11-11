@@ -5,41 +5,10 @@ system (https://styles.refero.design/style/47cb86b6-cb2d-41c8-94ba-8607cd7c41cd)
 with the Anthropic variant's ivory canvas and 68px display scale. Applied
 2026-11-09, replacing the old dark glass theme.
 
-The Dashboard page follows a second system, Glassy Dashboard V24 (below),
-added 2026-11-11 from the code.xr reel the user shared. The two systems
-coexist: Anthropic rules the site, V24 rules the Dashboard page only.
-
 ## Rule
 
 Match this file exactly. Do not invent new colors, fonts, radii, or shadows.
 When a new component is needed, reuse the tokens and patterns below.
-
-## Glassy Dashboard V24 (Dashboard page only)
-
-Source: code.xr "Glassy Dashboard V24" reel (Instagram, 2026-11-08), shared
-by the user 2026-11-11. Applied to the Dashboard page only; every other
-page stays Anthropic.
-
-- Canvas: `.v24-page` — four soft radial gradient blobs (violet, pink,
-  orange, blue at 20-35% opacity) over `#faf9fc`. Full-bleed via negative
-  margins that cancel the main container padding.
-- Cards: `.glass-card` — `rgba(255,255,255,0.72)`, 1px white border,
-  20px radius, backdrop blur 18px + saturate 1.3, soft violet-tinted
-  shadow. Hover lifts 3px (`.glass-card-hover`).
-- Accents: violet `#7c3aed`/`#8b5cf6` is the primary accent on this page
-  (links, LIVE pill, active states), pink `#ec4899` is the chart line.
-  Clay keeps its role on the rest of the site.
-- Stat cards: 40px tinted icon chip (violet, blue, green, orange at
-  14-16% opacity), uppercase 11px label, serif 26px value, change badge.
-- Analytics chart: hand-rolled SVG area chart, Nifty 50 last 10 sessions,
-  Catmull-Rom smoothed, pink line over a pink-to-violet gradient fill.
-  No chart library. Data from `api.history('^NSEI', '1M')`.
-- Breadth donut: SVG ring, green advancers / red decliners / gray
-  unchanged, center shows the advancing percentage.
-- Layout (reel order): greeting header + search + LIVE pill, four stat
-  cards, chart (3 cols) + donut (2 cols), gainers/losers tables, strong
-  buys, news. Content is TrendWise market data, never the reel's SaaS
-  numbers (users, revenue, projects).
 
 ## Tokens — Colors
 
