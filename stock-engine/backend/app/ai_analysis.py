@@ -6,6 +6,9 @@ Two providers, chosen by AI_PROVIDER:
 - "nim": NVIDIA NIM hosted endpoint (OpenAI-compatible chat API),
   which answers in seconds. When NIM fails, generation falls back to
   the local model instead of failing outright.
+- "groq": Groq Cloud free endpoint (OpenAI-compatible chat API),
+  fastest of the three. Falls back to NIM, then local. Groq free is
+  8,000 tokens/min, which fits these short analysis calls.
 
 Results are cached one per symbol per trading day (Asia/Kolkata date)
 in the same SQLite file as the rest of the app, and generation runs in
@@ -37,6 +40,9 @@ AI_PROVIDER = os.getenv("AI_PROVIDER", "local").lower()
 NIM_API_KEY = os.getenv("NVIDIA_API_KEY", "") or os.getenv("NIM_API_KEY", "")
 NIM_MODEL = os.getenv("NIM_MODEL", "deepseek-ai/deepseek-v4.1-flash")
 NIM_BASE_URL = os.getenv("NIM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+GROQ_BASE_URL = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
 NUM_CTX = 8192
 NUM_PREDICT = 600
 GENERATE_TIMEOUT = 600
@@ -157,24 +163,25 @@ def _ollama_generate(prompt: str) -> str:
     return text
 
 
-def _nim_generate(prompt: str) -> str:
-    """One OpenAI-compatible chat call to the NVIDIA NIM endpoint."""
-    if not NIM_API_KEY:
-        raise RuntimeError("NIM API key is not configured")
+def _openai_chat_generate(prompt: str, api_key: str, model: str,
+                          base_url: str, label: str) -> str:
+    """One OpenAI-compatible chat call to a hosted endpoint."""
+    if not api_key:
+        raise RuntimeError(f"{label} API key is not configured")
     body = json.dumps(
         {
-            "model": NIM_MODEL,
+            "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.3,
             "max_tokens": NUM_PREDICT,
         }
     ).encode("utf-8")
     req = urllib.request.Request(
-        NIM_BASE_URL.rstrip("/") + "/chat/completions",
+        base_url.rstrip("/") + "/chat/completions",
         data=body,
         headers={
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + NIM_API_KEY,
+            "Authorization": "Bearer " + api_key,
         },
         method="POST",
     )
@@ -182,33 +189,58 @@ def _nim_generate(prompt: str) -> str:
         with urllib.request.urlopen(req, timeout=120) as resp:
             payload = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        raise RuntimeError(f"NIM request failed (HTTP {exc.code})") from exc
+        raise RuntimeError(f"{label} request failed (HTTP {exc.code})") from exc
     except OSError as exc:
-        raise RuntimeError("NIM endpoint unreachable") from exc
+        raise RuntimeError(f"{label} endpoint unreachable") from exc
     choices = payload.get("choices") or []
     text = ""
     if choices:
         text = ((choices[0].get("message") or {}).get("content") or "").strip()
     if not text:
-        raise RuntimeError("NIM returned an empty response")
+        raise RuntimeError(f"{label} returned an empty response")
     return text
 
 
+def _nim_generate(prompt: str) -> str:
+    """One OpenAI-compatible chat call to the NVIDIA NIM endpoint."""
+    return _openai_chat_generate(prompt, NIM_API_KEY, NIM_MODEL, NIM_BASE_URL, "NIM")
+
+
+def _groq_generate(prompt: str) -> str:
+    """One OpenAI-compatible chat call to the Groq Cloud endpoint."""
+    return _openai_chat_generate(
+        prompt, GROQ_API_KEY, GROQ_MODEL, GROQ_BASE_URL, "Groq"
+    )
+
+
 def _configured_model() -> str:
+    if AI_PROVIDER == "groq":
+        return GROQ_MODEL
     return NIM_MODEL if AI_PROVIDER == "nim" else MODEL
 
 
 def _generate_with_fallback(prompt: str) -> tuple[str, str]:
-    """Try the configured provider, falling back to local on failure.
+    """Try the configured provider, falling back to NIM, then local.
     Returns (text, model actually used)."""
     providers = [("local", _ollama_generate)]
     if AI_PROVIDER == "nim":
         providers = [("nim", _nim_generate), ("local", _ollama_generate)]
+    elif AI_PROVIDER == "groq":
+        providers = [
+            ("groq", _groq_generate),
+            ("nim", _nim_generate),
+            ("local", _ollama_generate),
+        ]
     last_exc: Exception | None = None
     for name, fn in providers:
         try:
             text = fn(prompt)
-            return text, (NIM_MODEL if name == "nim" else MODEL)
+            model = MODEL
+            if name == "nim":
+                model = NIM_MODEL
+            elif name == "groq":
+                model = GROQ_MODEL
+            return text, model
         except Exception as exc:
             log.warning("AI provider %s failed: %s", name, exc)
             last_exc = exc
