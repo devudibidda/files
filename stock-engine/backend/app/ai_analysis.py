@@ -182,6 +182,9 @@ def _openai_chat_generate(prompt: str, api_key: str, model: str,
         headers={
             "Content-Type": "application/json",
             "Authorization": "Bearer " + api_key,
+            # Cloudflare (error 1010) blocks Python-urllib's default
+            # User-Agent; a plain product UA passes, same as for Upstox.
+            "User-Agent": "TrendWise/1.0",
         },
         method="POST",
     )
