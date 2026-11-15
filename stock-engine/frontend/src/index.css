@@ -70,6 +70,14 @@
 }
 
 @layer components {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* ---------- Grain texture (SVG turbulence, data URI) ---------- */
   .grain-light {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.55'/></svg>");
@@ -181,8 +189,11 @@
     }
   }
 
-  /* ---------- Sidebar nav scroll area: visible brass scrollbar ---------- */
+  /* ---------- Sidebar nav scroll area: visible brass scrollbar ----------
+     Never scrolls sideways: collapsed labels are clipped by FadeLabel,
+     so no stray horizontal bar appears on mobile or desktop-collapse. */
   .skeuo-scroll {
+    overflow-x: hidden;
     scrollbar-width: thin;
     scrollbar-color: #c9a86a rgba(0, 0, 0, 0.3);
     overscroll-behavior: contain;

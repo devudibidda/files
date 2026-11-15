@@ -16,7 +16,7 @@ import { useFetch } from '../hooks';
 
 function IndexStrip({ indices }) {
   return (
-    <div className="flex gap-3 overflow-x-auto pb-1">
+    <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
       {indices.map((ix, i) => (
         <Reveal key={ix.yahoo} delay={i * 70} className="shrink-0">
           <TiltCard className="h-full">

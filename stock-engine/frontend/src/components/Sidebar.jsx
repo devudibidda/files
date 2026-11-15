@@ -62,7 +62,7 @@ function Medallion({ active, icon }) {
 function FadeLabel({ open, delay, children, className = '' }) {
   return (
     <span
-      className={`whitespace-nowrap transition-all duration-300 ${open ? 'max-w-[190px] opacity-100' : 'max-w-0 opacity-0'} ${className}`}
+      className={`overflow-hidden whitespace-nowrap transition-all duration-300 ${open ? 'max-w-[190px] opacity-100' : 'max-w-0 opacity-0'} ${className}`}
       style={{ transitionDelay: open ? `${delay}ms` : '0ms' }}
     >
       {children}
@@ -90,6 +90,10 @@ export default function Sidebar({ open, onToggle, mobileOpen, onCloseMobile }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onToggle, mobileOpen, onCloseMobile]);
 
+  // The mobile drawer always shows labels when open, even if the desktop
+  // rail is collapsed. Desktop follows `open` (mobileOpen is false there).
+  const labelsOpen = open || mobileOpen;
+
   let stagger = 0;
   const nextDelay = () => {
     stagger += 45;
@@ -111,10 +115,10 @@ export default function Sidebar({ open, onToggle, mobileOpen, onCloseMobile }) {
         aria-label="Main menu"
         style={{ '--panel-w': open ? '280px' : '72px' }}
       >
-        <div className="skeuo-leather skeuo-panel relative flex h-full flex-col p-2 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:h-auto md:max-h-[calc(100vh-2rem)]">
+        <div className="skeuo-leather skeuo-panel relative flex h-full flex-col overflow-hidden p-2 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:h-auto md:max-h-[calc(100vh-2rem)]">
           <span className="skeuo-stitch" aria-hidden="true" />
           {/* Header */}
-          <div className={`relative flex items-center rounded-2xl px-1.5 py-1.5 ${open ? 'gap-3' : 'gap-0'}`}>
+          <div className={`relative flex items-center rounded-2xl px-1.5 py-1.5 ${labelsOpen ? 'gap-3' : 'gap-0'}`}>
             <span className="skeuo-medallion flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
               <svg viewBox="0 0 32 32" className="h-5 w-5">
                 <path
@@ -127,7 +131,7 @@ export default function Sidebar({ open, onToggle, mobileOpen, onCloseMobile }) {
                 />
               </svg>
             </span>
-            <FadeLabel open={open} delay={nextDelay()}>
+            <FadeLabel open={labelsOpen} delay={nextDelay()}>
               <span className="flex flex-col leading-tight">
                 <span className="font-display text-[17px] font-semibold tracking-tight text-[#f5e3c7]">
                   TrendWise
@@ -135,7 +139,7 @@ export default function Sidebar({ open, onToggle, mobileOpen, onCloseMobile }) {
                 <span className="text-[11px] text-[#c9b8a3]">Market workspace</span>
               </span>
             </FadeLabel>
-            <FadeLabel open={open} delay={nextDelay()} className="ml-auto">
+            <FadeLabel open={labelsOpen} delay={nextDelay()} className="ml-auto">
               <span className="flex items-center gap-1.5 rounded-full border border-black/40 bg-black/25 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#f5e3c7]">
                 <span className="skeuo-lamp inline-block h-2 w-2 rounded-full" />
                 LIVE
@@ -145,10 +149,10 @@ export default function Sidebar({ open, onToggle, mobileOpen, onCloseMobile }) {
 
           {/* Search */}
           <div className="relative mt-1 px-1">
-            {open ? (
+            {labelsOpen ? (
               <div
                 className="transition-opacity duration-300"
-                style={{ opacity: 1, transitionDelay: open ? '90ms' : '0ms' }}
+                style={{ opacity: 1, transitionDelay: labelsOpen ? '90ms' : '0ms' }}
               >
                 <SearchBox variant="cream" inputRef={searchRef} onNavigate={onCloseMobile} />
               </div>
@@ -175,17 +179,17 @@ export default function Sidebar({ open, onToggle, mobileOpen, onCloseMobile }) {
           </div>
 
           {/* Nav */}
-          <nav className="skeuo-scroll relative mt-1 flex-1 overflow-y-auto">
+          <nav className="skeuo-scroll relative mt-1 flex-1 overflow-y-auto overflow-x-hidden">
             {SECTIONS.map((section) => (
               <div key={section.heading}>
                 <p
                   className="overflow-hidden px-3 text-[11px] font-semibold uppercase tracking-wider text-[#c9b8a3] transition-all duration-300"
                   style={{
-                    opacity: open ? 1 : 0,
-                    height: open ? 'auto' : 0,
-                    paddingTop: open ? 12 : 0,
-                    paddingBottom: open ? 4 : 0,
-                    transitionDelay: open ? `${nextDelay()}ms` : '0ms',
+                    opacity: labelsOpen ? 1 : 0,
+                    height: labelsOpen ? 'auto' : 0,
+                    paddingTop: labelsOpen ? 12 : 0,
+                    paddingBottom: labelsOpen ? 4 : 0,
+                    transitionDelay: labelsOpen ? `${nextDelay()}ms` : '0ms',
                   }}
                 >
                   {section.heading}
@@ -200,7 +204,7 @@ export default function Sidebar({ open, onToggle, mobileOpen, onCloseMobile }) {
                         onClick={onCloseMobile}
                         className={({ isActive }) =>
                           `skeuo-key group relative flex items-center rounded-xl px-1.5 py-1.5 transition-all duration-300 ${
-                            open ? 'gap-3' : 'gap-0'
+                            labelsOpen ? 'gap-3' : 'gap-0'
                           } ${isActive ? 'skeuo-key-active' : ''}`
                         }
                       >
@@ -208,14 +212,14 @@ export default function Sidebar({ open, onToggle, mobileOpen, onCloseMobile }) {
                           <>
                             <Medallion active={isActive} icon={item.icon} />
                             <FadeLabel
-                              open={open}
+                              open={labelsOpen}
                               delay={nextDelay()}
                               className={`flex items-center gap-2 text-sm ${isActive ? 'font-semibold text-[#fffdf8]' : 'text-[#f0e6d2]'}`}
                             >
                               {isActive && <span className="skeuo-lamp inline-block h-1.5 w-1.5 shrink-0 rounded-full" />}
                               {item.label}
                             </FadeLabel>
-                            {!open && (
+                            {!labelsOpen && (
                               <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-lg border border-[#b3a586] bg-[#fffdf8] px-3 py-1.5 text-xs font-semibold text-[#2b2118] opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
                                 <span className="absolute -left-[5px] top-1/2 h-2.5 w-2.5 -translate-y-1/2 rotate-45 border-b border-l border-[#b3a586] bg-[#fffdf8]" />
                                 {item.label}
@@ -235,11 +239,11 @@ export default function Sidebar({ open, onToggle, mobileOpen, onCloseMobile }) {
           <div
             className="relative mt-1 border-t border-[rgba(245,227,199,0.18)] px-3 transition-opacity duration-300"
             style={{
-              opacity: open ? 1 : 0,
-              height: open ? 'auto' : 0,
-              paddingTop: open ? 10 : 0,
-              paddingBottom: open ? 6 : 0,
-              transitionDelay: open ? '320ms' : '0ms',
+              opacity: labelsOpen ? 1 : 0,
+              height: labelsOpen ? 'auto' : 0,
+              paddingTop: labelsOpen ? 10 : 0,
+              paddingBottom: labelsOpen ? 6 : 0,
+              transitionDelay: labelsOpen ? '320ms' : '0ms',
             }}
           >
             <p className="whitespace-nowrap text-[10px] leading-relaxed text-[#c9b8a3]">
