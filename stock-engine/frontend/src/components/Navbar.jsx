@@ -3,59 +3,51 @@ import SearchBox from './SearchBox';
 
 function Logo() {
   return (
-    <NavLink to="/" className="flex items-center gap-2.5 shrink-0">
-      <svg viewBox="0 0 32 32" className="h-8 w-8">
-        <rect width="32" height="32" rx="8" fill="#121212" />
-        <path
-          d="M6 22 L13 14 L18 18 L26 8"
-          className="stroke-bull"
-          strokeWidth="3"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span className="font-display text-lg font-semibold tracking-tight text-slate-100">
+    <NavLink to="/" className="flex shrink-0 items-center gap-2.5">
+      <span className="skeuo-medallion flex h-8 w-8 items-center justify-center rounded-lg">
+        <svg viewBox="0 0 32 32" className="h-5 w-5">
+          <path
+            d="M6 22 L13 14 L18 18 L26 8"
+            stroke="#d97757"
+            strokeWidth="3"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+      <span className="font-display text-lg font-semibold tracking-tight text-[#2b2118]">
         Trend<span className="text-clay">Wise</span>
       </span>
     </NavLink>
   );
 }
 
-const links = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/screener', label: 'Screener' },
-  { to: '/calls', label: 'Calls' },
-  { to: '/etfs', label: 'ETFs' },
-  { to: '/mutual-funds', label: 'Mutual Funds' },
-  { to: '/watchlist', label: 'Watchlist' },
-];
-
 /**
- * Mobile-only top bar. On desktop (md and up) the glassy sidebar
+ * Mobile-only top bar. On desktop (md and up) the leather sidebar
  * (components/Sidebar.jsx) is the menu, so this header hides there.
+ * The hamburger opens the sidebar as a slide-in drawer; the old
+ * horizontally scrolling pill row is gone (the drawer is the one menu).
  */
-export default function Navbar() {
+export default function Navbar({ onOpenMenu }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-700 bg-paper/80 backdrop-blur-xl shadow-[0_8px_24px_-16px_rgba(18,18,18,0.15)] md:hidden">
-      <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3 sm:px-6">
+    <header className="skeuo-metal mobile-bar sticky top-0 z-40 md:hidden">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
+        <button
+          type="button"
+          onClick={onOpenMenu}
+          aria-label="Open menu"
+          className="skeuo-knob flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+          </svg>
+        </button>
         <Logo />
-        <div className="ml-auto flex-1 md:max-w-md">
-          <SearchBox variant="dark" />
+        <div className="ml-auto min-w-0 flex-1 md:max-w-md">
+          <SearchBox variant="cream" />
         </div>
       </div>
-      <nav className="flex items-center gap-1 overflow-x-auto px-4 pb-2">
-        {links.map((l) => (
-          <NavLink
-            key={l.to}
-            to={l.to}
-            end={l.to === '/'}
-            className={({ isActive }) => `btn-pill whitespace-nowrap ${isActive ? 'btn-pill-active' : ''}`}
-          >
-            {l.label}
-          </NavLink>
-        ))}
-      </nav>
     </header>
   );
 }

@@ -2,8 +2,6 @@ import { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import SearchBox from './SearchBox';
 
-const ACCENT = '#d97757'; // clay, the one chromatic accent in the Anthropic system
-
 const SECTIONS = [
   {
     heading: 'Explore',
@@ -47,11 +45,12 @@ const SECTIONS = [
   },
 ];
 
-function Tile({ color, icon, size = 'h-10 w-10' }) {
+function Medallion({ active, icon }) {
   return (
     <span
-      className={`flex shrink-0 items-center justify-center rounded-xl text-white shadow-sm ${size}`}
-      style={{ backgroundColor: color }}
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+        active ? 'skeuo-medallion-active' : 'skeuo-medallion'
+      }`}
     >
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
         <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
@@ -71,7 +70,7 @@ function FadeLabel({ open, delay, children, className = '' }) {
   );
 }
 
-export default function Sidebar({ open, onToggle }) {
+export default function Sidebar({ open, onToggle, mobileOpen, onCloseMobile }) {
   const searchRef = useRef(null);
 
   const focusSearch = () => {
@@ -85,10 +84,11 @@ export default function Sidebar({ open, onToggle }) {
         if (!open) onToggle();
         focusSearch();
       }
+      if (e.key === 'Escape' && mobileOpen) onCloseMobile();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [open, onToggle]);
+  }, [open, onToggle, mobileOpen, onCloseMobile]);
 
   let stagger = 0;
   const nextDelay = () => {
@@ -97,168 +97,191 @@ export default function Sidebar({ open, onToggle }) {
   };
 
   return (
-    <aside className="fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 md:block" aria-label="Main menu">
+    <>
+      {/* Mobile backdrop */}
       <div
-        className="glass-sidebar relative flex max-h-[calc(100vh-2rem)] flex-col p-2 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
-        style={{ width: open ? 280 : 72 }}
+        className={`drawer-backdrop md:hidden ${mobileOpen ? '' : 'pointer-events-none'}`}
+        data-open={mobileOpen}
+        onClick={onCloseMobile}
+        aria-hidden="true"
+      />
+      <aside
+        className="tw-sidebar-shell"
+        data-open={mobileOpen}
+        aria-label="Main menu"
+        style={{ '--panel-w': open ? '280px' : '72px' }}
       >
-        {/* Header */}
-        <div className={`flex items-center rounded-2xl px-1.5 py-1.5 ${open ? 'gap-3' : 'gap-0'}`}>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#121212] shadow-sm">
-            <svg viewBox="0 0 32 32" className="h-5 w-5">
-              <path
-                d="M6 22 L13 14 L18 18 L26 8"
-                stroke="#d97757"
-                strokeWidth="3.5"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-          <FadeLabel open={open} delay={nextDelay()}>
-            <span className="flex flex-col leading-tight">
-              <span className="font-display text-[17px] font-semibold tracking-tight text-[#121212]">
-                TrendWise
-              </span>
-              <span className="text-[11px] text-[#8a7f72]">Market workspace</span>
-            </span>
-          </FadeLabel>
-          <FadeLabel open={open} delay={nextDelay()} className="ml-auto">
-            <span
-              className="rounded-full px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white"
-              style={{ backgroundColor: ACCENT }}
-            >
-              LIVE
-            </span>
-          </FadeLabel>
-        </div>
-
-        {/* Search */}
-        <div className="mt-1 px-1">
-          {open ? (
-            <div
-              className="transition-opacity duration-300"
-              style={{ opacity: 1, transitionDelay: open ? '90ms' : '0ms' }}
-            >
-              <SearchBox variant="cream" inputRef={searchRef} />
-            </div>
-          ) : (
-            <button
-              type="button"
-              aria-label="Search stocks and ETFs"
-              title="Search"
-              onClick={() => {
-                onToggle();
-                focusSearch();
-              }}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[rgba(120,90,40,0.14)] bg-white/70 text-[#5c5347] shadow-sm transition hover:bg-white"
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <div className="skeuo-leather skeuo-panel relative flex h-full flex-col p-2 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:h-auto md:max-h-[calc(100vh-2rem)]">
+          <span className="skeuo-stitch" aria-hidden="true" />
+          {/* Header */}
+          <div className={`relative flex items-center rounded-2xl px-1.5 py-1.5 ${open ? 'gap-3' : 'gap-0'}`}>
+            <span className="skeuo-medallion flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+              <svg viewBox="0 0 32 32" className="h-5 w-5">
                 <path
+                  d="M6 22 L13 14 L18 18 L26 8"
+                  stroke="#d97757"
+                  strokeWidth="3.5"
+                  fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
                 />
               </svg>
-            </button>
-          )}
-        </div>
+            </span>
+            <FadeLabel open={open} delay={nextDelay()}>
+              <span className="flex flex-col leading-tight">
+                <span className="font-display text-[17px] font-semibold tracking-tight text-[#f5e3c7]">
+                  TrendWise
+                </span>
+                <span className="text-[11px] text-[#c9b8a3]">Market workspace</span>
+              </span>
+            </FadeLabel>
+            <FadeLabel open={open} delay={nextDelay()} className="ml-auto">
+              <span className="flex items-center gap-1.5 rounded-full border border-black/40 bg-black/25 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#f5e3c7]">
+                <span className="skeuo-lamp inline-block h-2 w-2 rounded-full" />
+                LIVE
+              </span>
+            </FadeLabel>
+          </div>
 
-        {/* Nav */}
-        <nav className="no-scrollbar mt-1 flex-1 overflow-y-auto">
-          {SECTIONS.map((section) => (
-            <div key={section.heading}>
-              <p
-                className="overflow-hidden px-3 text-[11px] font-semibold text-[#a39a8c] transition-all duration-300"
-                style={{
-                  opacity: open ? 1 : 0,
-                  height: open ? 'auto' : 0,
-                  paddingTop: open ? 12 : 0,
-                  paddingBottom: open ? 4 : 0,
-                  transitionDelay: open ? `${nextDelay()}ms` : '0ms',
-                }}
+          {/* Search */}
+          <div className="relative mt-1 px-1">
+            {open ? (
+              <div
+                className="transition-opacity duration-300"
+                style={{ opacity: 1, transitionDelay: open ? '90ms' : '0ms' }}
               >
-                {section.heading}
-              </p>
-              <ul className="space-y-0.5">
-                {section.items.map((item) => (
-                  <li key={item.to}>
-                    <NavLink
-                      to={item.to}
-                      end={item.to === '/'}
-                      title={item.label}
-                      className={({ isActive }) =>
-                        `group relative flex items-center rounded-2xl px-1.5 py-1.5 transition-colors duration-200 ${
-                          open ? 'gap-3' : 'gap-0'
-                        } ${isActive ? 'bg-[rgba(120,90,40,0.09)]' : 'hover:bg-[rgba(120,90,40,0.05)]'}`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          {/* Monochrome tiles per the Anthropic system; the active one takes the clay accent. */}
-                          <Tile color={isActive ? ACCENT : '#121212'} icon={item.icon} />
-                          <FadeLabel
-                            open={open}
-                            delay={nextDelay()}
-                            className={`text-sm ${isActive ? 'font-semibold text-[#1d1712]' : 'text-[#3f342a]'}`}
-                          >
-                            {item.label}
-                          </FadeLabel>
-                          {!open && (
-                            <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/70 bg-white/95 px-3 py-1.5 text-xs font-semibold text-[#2b2118] opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-                              <span className="absolute -left-[5px] top-1/2 h-2.5 w-2.5 -translate-y-1/2 rotate-45 border-b border-l border-white/70 bg-white/95" />
+                <SearchBox variant="cream" inputRef={searchRef} onNavigate={onCloseMobile} />
+              </div>
+            ) : (
+              <button
+                type="button"
+                aria-label="Search stocks and ETFs"
+                title="Search"
+                onClick={() => {
+                  onToggle();
+                  focusSearch();
+                }}
+                className="skeuo-key flex h-11 w-11 items-center justify-center rounded-xl"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {/* Nav */}
+          <nav className="skeuo-scroll relative mt-1 flex-1 overflow-y-auto">
+            {SECTIONS.map((section) => (
+              <div key={section.heading}>
+                <p
+                  className="overflow-hidden px-3 text-[11px] font-semibold uppercase tracking-wider text-[#c9b8a3] transition-all duration-300"
+                  style={{
+                    opacity: open ? 1 : 0,
+                    height: open ? 'auto' : 0,
+                    paddingTop: open ? 12 : 0,
+                    paddingBottom: open ? 4 : 0,
+                    transitionDelay: open ? `${nextDelay()}ms` : '0ms',
+                  }}
+                >
+                  {section.heading}
+                </p>
+                <ul className="space-y-1">
+                  {section.items.map((item) => (
+                    <li key={item.to}>
+                      <NavLink
+                        to={item.to}
+                        end={item.to === '/'}
+                        title={item.label}
+                        onClick={onCloseMobile}
+                        className={({ isActive }) =>
+                          `skeuo-key group relative flex items-center rounded-xl px-1.5 py-1.5 transition-all duration-300 ${
+                            open ? 'gap-3' : 'gap-0'
+                          } ${isActive ? 'skeuo-key-active' : ''}`
+                        }
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <Medallion active={isActive} icon={item.icon} />
+                            <FadeLabel
+                              open={open}
+                              delay={nextDelay()}
+                              className={`flex items-center gap-2 text-sm ${isActive ? 'font-semibold text-[#fffdf8]' : 'text-[#f0e6d2]'}`}
+                            >
+                              {isActive && <span className="skeuo-lamp inline-block h-1.5 w-1.5 shrink-0 rounded-full" />}
                               {item.label}
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
+                            </FadeLabel>
+                            {!open && (
+                              <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-lg border border-[#b3a586] bg-[#fffdf8] px-3 py-1.5 text-xs font-semibold text-[#2b2118] opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+                                <span className="absolute -left-[5px] top-1/2 h-2.5 w-2.5 -translate-y-1/2 rotate-45 border-b border-l border-[#b3a586] bg-[#fffdf8]" />
+                                {item.label}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
 
-        {/* Footer */}
-        <div
-          className="mt-1 border-t border-[rgba(120,90,40,0.12)] px-3 transition-opacity duration-300"
-          style={{
-            opacity: open ? 1 : 0,
-            height: open ? 'auto' : 0,
-            paddingTop: open ? 10 : 0,
-            paddingBottom: open ? 6 : 0,
-            transitionDelay: open ? '320ms' : '0ms',
-          }}
-        >
-          <p className="whitespace-nowrap text-[10px] leading-relaxed text-[#a39a8c]">
-            Educational tool,
-            <br />
-            not investment advice.
-          </p>
+          {/* Footer */}
+          <div
+            className="relative mt-1 border-t border-[rgba(245,227,199,0.18)] px-3 transition-opacity duration-300"
+            style={{
+              opacity: open ? 1 : 0,
+              height: open ? 'auto' : 0,
+              paddingTop: open ? 10 : 0,
+              paddingBottom: open ? 6 : 0,
+              transitionDelay: open ? '320ms' : '0ms',
+            }}
+          >
+            <p className="whitespace-nowrap text-[10px] leading-relaxed text-[#c9b8a3]">
+              Educational tool,
+              <br />
+              not investment advice.
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Collapse button, protruding from the right edge */}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label={open ? 'Collapse menu' : 'Expand menu'}
-        title={open ? 'Collapse' : 'Expand'}
-        className="absolute -right-3 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-[#fffdf8] text-[#2b2118] shadow-md transition hover:bg-white"
-      >
-        <svg
-          className="h-4 w-4 transition-transform duration-300"
-          style={{ transform: open ? 'rotate(0deg)' : 'rotate(180deg)' }}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2.5"
+        {/* Collapse knob (desktop) / close knob (mobile drawer) */}
+        <button
+          type="button"
+          onClick={() => {
+            if (window.matchMedia('(max-width: 767px)').matches) onCloseMobile();
+            else onToggle();
+          }}
+          aria-label={open ? 'Collapse menu' : 'Expand menu'}
+          title={open ? 'Collapse' : 'Expand'}
+          className="skeuo-knob absolute -right-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-        </svg>
-      </button>
-    </aside>
+          <svg
+            className="hidden h-4 w-4 transition-transform duration-300 md:block"
+            style={{ transform: open ? 'rotate(0deg)' : 'rotate(180deg)' }}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+          <svg
+            className="h-4 w-4 md:hidden"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </aside>
+    </>
   );
 }

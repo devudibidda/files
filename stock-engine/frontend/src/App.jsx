@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
@@ -18,6 +18,7 @@ export default function App() {
       return true;
     }
   });
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen((o) => {
@@ -29,11 +30,24 @@ export default function App() {
     });
   };
 
+  // Lock body scroll while the mobile drawer is open.
+  useEffect(() => {
+    document.body.style.overflow = mobileNavOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileNavOpen]);
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-clip">
       <div className="relative z-10">
-        <Navbar />
-        <Sidebar open={sidebarOpen} onToggle={toggleSidebar} />
+        <Navbar onOpenMenu={() => setMobileNavOpen(true)} />
+        <Sidebar
+          open={sidebarOpen}
+          onToggle={toggleSidebar}
+          mobileOpen={mobileNavOpen}
+          onCloseMobile={() => setMobileNavOpen(false)}
+        />
         <div
           className={`transition-[margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             sidebarOpen ? 'md:ml-[312px]' : 'md:ml-[104px]'

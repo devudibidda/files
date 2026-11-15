@@ -88,13 +88,11 @@ export default function SearchBox({ variant = 'dark', inputRef: externalRef, onN
         onKeyDown={onKeyDown}
         placeholder="Search stocks & ETFs"
         className={`w-full rounded-xl py-2 pl-9 text-sm outline-none transition ${
-          cream
-            ? 'border border-ink-600 bg-[rgba(120,90,40,0.07)] pr-12 text-[#2b2118] placeholder-[#a39a8c] focus:border-[#d97757]/60 focus:ring-2 focus:ring-[#d97757]/25'
-            : 'border border-ink-600 bg-white pr-3 text-slate-100 placeholder-slate-400 focus:border-brand-400/60 focus:ring-2 focus:ring-brand-500/25'
+          cream ? 'skeuo-input pr-12' : 'border border-ink-600 bg-white pr-3 text-slate-100 placeholder-slate-400 focus:border-brand-400/60 focus:ring-2 focus:ring-brand-500/25'
         }`}
       />
       {cream && (
-        <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md border border-[rgba(120,90,40,0.16)] bg-white/70 px-1.5 py-0.5 text-[10px] font-semibold text-[#8a7f72]">
+        <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md border border-[#b3a586] bg-gradient-to-b from-white to-[#e4dcc7] px-1.5 py-0.5 text-[10px] font-semibold text-[#5c5347] shadow-[inset_0_1px_0_#fff,0_1px_0_#b3a586]">
           ⌘K
         </kbd>
       )}

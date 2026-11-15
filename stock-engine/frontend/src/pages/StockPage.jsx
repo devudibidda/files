@@ -20,7 +20,7 @@ function Header({ quote, analysis, onWatch, watched }) {
           <button
             onClick={onWatch}
             title={watched ? 'Remove from watchlist' : 'Add to watchlist'}
-            className={`text-xl leading-none transition-colors ${watched ? 'text-amber-300' : 'text-slate-600 hover:text-amber-300'}`}
+            className={`flex h-11 w-11 shrink-0 items-center justify-center text-xl leading-none transition-colors ${watched ? 'text-amber-300' : 'text-slate-600 hover:text-amber-300'}`}
           >
             ★
           </button>
@@ -64,8 +64,7 @@ function TradePlanCard({ plan, verdict, accountSize, riskPct, onParams }) {
     const r = Number(risk);
     if (a > 0 && r > 0 && r <= 100) onParams(a, r);
   };
-  const inputCls =
-    'mt-1 w-full rounded-lg border border-ink-600 bg-white px-2 py-1.5 text-sm text-slate-100 outline-none focus:border-brand-500';
+  const inputCls = 'skeuo-input mt-1 w-full px-2 py-2 text-sm';
   const sizing = plan.positionSizing;
   const showSizing = plan.action === 'BUY' || plan.action === 'BUY_ON_DIP';
 
