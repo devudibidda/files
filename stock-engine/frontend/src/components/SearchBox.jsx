@@ -71,7 +71,7 @@ export default function SearchBox({ variant = 'dark', inputRef: externalRef, onN
     <div ref={boxRef} className="relative w-full">
       <svg
         className={`pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${
-          cream ? 'text-[#a39a8c]' : 'text-slate-500'
+          cream ? 'text-[#6f6e68]' : 'text-slate-500'
         }`}
         fill="none"
         viewBox="0 0 24 24"
@@ -123,11 +123,11 @@ export default function SearchBox({ variant = 'dark', inputRef: externalRef, onN
                   <span className={`font-semibold ${cream ? 'text-[#2b2118]' : 'text-slate-100'}`}>
                     {r.symbol}
                   </span>
-                  <span className={`ml-2 ${cream ? 'text-[#8a7f72]' : 'text-slate-400'}`}>{r.name}</span>
+                  <span className={`ml-2 ${cream ? 'text-[#6f6e68]' : 'text-slate-400'}`}>{r.name}</span>
                 </span>
                 <span
                   className={`text-[10px] uppercase tracking-wide ${
-                    cream ? 'text-[#a39a8c]' : 'text-slate-500'
+                    cream ? 'text-[#6f6e68]' : 'text-slate-500'
                   }`}
                 >
                   {r.type === 'etf' ? 'ETF' : r.sector}

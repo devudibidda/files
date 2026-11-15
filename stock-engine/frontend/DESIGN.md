@@ -24,8 +24,8 @@ no image assets.
 | Carbon Ink | `#121212` | Primary text, filled actions. Never pure black `#000000` |
 | Slate Dark | `#141413` | Headings |
 | Graphite | `#3d3d3a` | Secondary text |
-| Ash | `#87867f` | Muted text, labels |
-| Pebble | `#b0aea5` | More muted text |
+| Ash | `#6f6e68` | Muted text, labels (4.8:1 on parchment) |
+| Pebble | `#716f69` | More muted text (4.7:1 on parchment) |
 | Stone | `#cccbc8` | Borders, hairlines |
 | Sand | `#e3dacc` | Hairline borders, fills |
 | Clay | `#d97757` | The one chromatic accent, lamps and editorial accents only |
@@ -91,6 +91,9 @@ Do:
 - Keep skeuomorphism on the chrome (sidebar, top bar, keys, inputs).
   Data stays dense and legible; never texture a table or a chart.
 - Touch targets are 44px minimum on mobile (nav keys, knobs, star).
+- Every text color passes WCAG AA (4.5:1) on its background. The lightest
+  text allowed on parchment is `#716f69`; nothing lighter is body text.
+  Chart lines and decorative glyphs are the only exceptions.
 
 Don't:
 - Don't introduce a second chromatic color for emphasis.

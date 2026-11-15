@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 const CHART_OPTS = {
   layout: {
     background: { color: 'transparent' },
-    textColor: '#87867f',
+    textColor: '#6f6e68',
     fontFamily: 'Inter, system-ui, sans-serif',
     panes: { separatorColor: '#e3dacc', separatorHoverColor: '#cccbc8' },
   },

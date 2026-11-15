@@ -22,10 +22,10 @@ export default {
         slate: {
           100: '#141413', // slate dark, primary text
           200: '#3d3d3a', // graphite, secondary text
-          300: '#6b6a66', // mid warm gray
-          400: '#87867f', // ash, muted text
-          500: '#b0aea5', // pebble, more muted
-          600: '#cccbc8',
+          300: '#6b6a66', // mid warm gray (5.9:1 on parchment)
+          400: '#6f6e68', // ash, muted text (4.8:1 on parchment, AA)
+          500: '#716f69', // pebble, more muted (4.7:1 on parchment, AA)
+          600: '#716f69', // text-only: star + "None nearby" (4.7:1, AA)
           700: '#e3dacc',
           800: '#f0eee6',
           900: '#faf9f5',
