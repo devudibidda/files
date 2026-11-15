@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, fmt } from '../api';
 import { ChangePct, ErrorNote, Reveal, SectionTitle, Skeleton, SymbolLink, VerdictBadge } from '../components/ui';
 import { useFetch } from '../hooks';
@@ -50,21 +51,40 @@ export default function EtfPage() {
       {cats.length > 0 && (
         <Reveal><div className="card-pad card-hover">
           <SectionTitle>Top picks per category</SectionTitle>
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
             {cats.map((c) => (
-              <div key={c.category}>
-                <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">{c.category}</div>
-                {c.leaders.map((r) => (
-                  <div key={r.symbol} className="flex items-center justify-between gap-2 py-1">
-                    <SymbolLink symbol={r.symbol} name={r.name} />
-                    <span className="flex shrink-0 items-center gap-2">
-                      <span className={`num text-sm font-bold ${r.score >= 0 ? 'text-bull' : 'text-bear'}`}>
-                        {r.score > 0 ? `+${r.score}` : r.score}
+              <div
+                key={c.category}
+                className="flex h-full flex-col rounded-2xl border border-ink-700 bg-ivory/60 p-4 shadow-[inset_0_1px_0_#ffffff,0_1px_2px_rgba(43,33,24,0.08)]"
+              >
+                <div className="flex items-center justify-between gap-2 border-b border-ink-700 pb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-slate-300">{c.category}</span>
+                  <span className="chip bg-ink-700 text-slate-300">
+                    {c.leaders.length} {c.leaders.length === 1 ? 'pick' : 'picks'}
+                  </span>
+                </div>
+                <div className="mt-1 flex-1">
+                  {c.leaders.map((r) => (
+                    <Link
+                      key={r.symbol}
+                      to={`/stock/${r.symbol}`}
+                      className="group flex items-center justify-between gap-3 border-b border-ink-700/60 py-2 last:border-b-0"
+                    >
+                      <span className="min-w-0">
+                        <span className="block font-semibold text-slate-100 transition-colors group-hover:text-clay">
+                          {r.symbol}
+                        </span>
+                        <span className="block truncate text-xs text-slate-500">{r.name}</span>
                       </span>
-                      <VerdictBadge verdict={r.verdict} />
-                    </span>
-                  </div>
-                ))}
+                      <span className="flex shrink-0 items-center gap-2">
+                        <span className={`num text-sm font-bold ${r.score >= 0 ? 'text-bull' : 'text-bear'}`}>
+                          {r.score > 0 ? `+${r.score}` : r.score}
+                        </span>
+                        <VerdictBadge verdict={r.verdict} />
+                      </span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
